@@ -447,6 +447,11 @@ let modalChecklist = [];
 let openAIPanels = {};
 const CRED_KEY = 'ca_sb_creds_v2';
 
+// ── HARDCODED SUPABASE KEYS ───────────────────────────────
+// Keys are embedded so users never see the setup screen
+const HARDCODED_URL = "https://jsajzdsxfygnlwcdjsru.supabase.co";
+const HARDCODED_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWp6ZHN4Znlnbmx3Y2Rqc3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDU3NjgsImV4cCI6MjA5MzcyMTc2OH0.p4GK1nshkwZv4WbLytfLqTyp4bC0PwT9fD-ZgRFnvig";
+
 const PRESET_DOCS = [
   'ICAI Firm Registration Certificate','PAN Card of Firm','GST Registration Certificate',
   'Partnership Deed / LLP Agreement','CA Certificate of Practice (CoP)',
@@ -464,7 +469,10 @@ const PRESET_DOCS = [
 async function init() {
   showLoading(true);
   buildPresetGrid();
-  const creds = getCreds();
+  // Use hardcoded keys first, fall back to saved keys, then show setup
+  const url = HARDCODED_KEY !== "PASTE_YOUR_ANON_KEY_HERE" ? HARDCODED_URL : null;
+  const key = HARDCODED_KEY !== "PASTE_YOUR_ANON_KEY_HERE" ? HARDCODED_KEY : null;
+  const creds = (url && key) ? {url, key} : getCreds();
   if (!creds) { showSetup(); showLoading(false); return; }
   try {
     sb = createClient(creds.url, creds.key);
