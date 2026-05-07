@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA Tender Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F7F5F0;--surface:#fff;--border:#E2DDD5;--text:#1A1814;
+  --text2:#6B6459;--text3:#9B9088;--accent:#1B4B82;--accent-light:#E8F0FB;
+  --green:#2D7A4F;--green-bg:#EAF5EF;--amber:#B45309;--amber-bg:#FEF3C7;
+  --red:#B91C1C;--red-bg:#FEE2E2;--purple:#6D28D9;--purple-bg:#EDE9FE;
+  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* AUTH */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.auth-card{background:var(--surface);border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.1);width:100%;max-width:420px;overflow:hidden}
+.auth-top{background:var(--accent);padding:32px;text-align:center}
+.auth-logo{width:56px;height:56px;background:rgba(255,255,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;color:#fff;font-size:22px;margin:0 auto 14px}
+.auth-title{font-family:'DM Serif Display',serif;color:#fff;font-size:24px}
+.auth-sub{color:rgba(255,255,255,0.6);font-size:13px;margin-top:4px}
+.auth-body{padding:28px 32px}
+.auth-tabs{display:flex;margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.auth-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;background:transparent;border:none;font-family:'DM Sans',sans-serif;color:var(--text2);transition:all .15s}
+.auth-tab.active{background:var(--accent);color:#fff}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.form-input{padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;width:100%}
+.form-input:focus{border-color:var(--accent)}
+.btn-primary{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px}
+.btn-primary:hover{background:#153d6b}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.auth-error{background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+.auth-success{background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+
+/* SETUP */
+#setup-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+.setup-card{background:var(--surface);border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.1);width:100%;max-width:680px;overflow:hidden}
+.setup-header{background:var(--accent);padding:24px 32px;display:flex;align-items:center;gap:14px}
+.setup-header h2{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;font-weight:400}
+.setup-header p{color:rgba(255,255,255,0.6);font-size:13px;margin-top:2px}
+.setup-body{padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+.setup-step{display:flex;gap:16px;align-items:flex-start}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;margin-top:2px}
+.step-content h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.step-content p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.code-box{background:#1e1e2e;color:#cdd6f4;padding:12px 16px;border-radius:8px;font-family:monospace;font-size:11px;line-height:1.8;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto}
+.copy-btn{font-size:11px;padding:4px 10px;background:rgba(255,255,255,0.1);color:#cdd6f4;border:none;border-radius:4px;cursor:pointer;float:right;font-family:'DM Sans',sans-serif;margin-bottom:4px}
+.btn-connect{padding:11px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
+.connect-status{font-size:13px;padding:10px 14px;border-radius:8px;display:none;margin-top:8px}
+.connect-status.ok{background:var(--green-bg);color:var(--green);display:block}
+.connect-status.err{background:var(--red-bg);color:var(--red);display:block}
+
+/* APP HEADER */
+#app-screen{display:none}
+.header{background:var(--accent);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.header-brand{display:flex;align-items:center;gap:12px}
+.header-logo{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;color:#fff;font-size:16px}
+.header-title{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;font-weight:400}
+.header-sub{color:rgba(255,255,255,0.55);font-size:12px;margin-top:1px}
+.header-right{display:flex;gap:10px;align-items:center}
+.user-pill{background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}
+.btn-add{background:#fff;color:var(--accent);border:none;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+.btn-add:hover{background:#f0f0f0;transform:translateY(-1px)}
+.btn-logout{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.2);padding:7px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+
+/* STATS */
+.stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto}
+.stat-item{padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.stat-item:last-child{border-right:none}
+.stat-val{font-size:22px;font-weight:600;font-family:'DM Serif Display',serif;line-height:1}
+.stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.stat-val.red{color:var(--red)}.stat-val.green{color:var(--green)}.stat-val.amber{color:var(--amber)}.stat-val.blue{color:var(--accent)}
+
+/* FILTERS */
+.filters{padding:14px 32px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg);border-bottom:1px solid var(--border)}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;font-weight:500}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.search-box{margin-left:auto;padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--text);width:200px;outline:none}
+.search-box:focus{border-color:var(--accent)}
+
+/* MAIN */
+.main{padding:20px 32px}
+.tender-grid{display:flex;flex-direction:column;gap:12px}
+
+/* TENDER CARD */
+.tender-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:all .2s}
+.tender-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08);transform:translateY(-1px)}
+.tender-card.filed{opacity:.6}
+.tender-card.urgent{border-left:4px solid var(--red)}
+.tender-card.warning{border-left:4px solid var(--amber)}
+.tender-card.safe{border-left:4px solid var(--green)}
+.tender-card.filed-card{border-left:4px solid #9CA3AF}
+.card-inner{padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.card-left{display:flex;flex-direction:column;gap:7px}
+.card-top{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.tender-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;flex:1;min-width:200px}
+.tender-card.filed .tender-title{text-decoration:line-through;color:var(--text3)}
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.badge.urgent{background:var(--red-bg);color:var(--red)}
+.badge.warning{background:var(--amber-bg);color:var(--amber)}
+.badge.safe{background:var(--green-bg);color:var(--green)}
+.badge.filed-b{background:#F3F4F6;color:#6B7280}
+.badge.empanel{background:var(--purple-bg);color:var(--purple)}
+.badge.type-b{background:var(--accent-light);color:var(--accent)}
+.card-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.meta-item{display:flex;align-items:center;gap:4px}
+.card-notes{font-size:12px;color:var(--text3);font-style:italic;line-height:1.5}
+
+/* CHECKLIST INSIDE CARD */
+.checklist-bar{padding:10px 18px;background:#FAFAF8;border-top:1px solid var(--border)}
+.checklist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.checklist-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.checklist-progress{font-size:11px;color:var(--text3)}
+.progress-bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-bottom:10px}
+.progress-bar-fill{height:4px;background:var(--green);border-radius:2px;transition:width .3s}
+.checklist-items{display:flex;flex-direction:column;gap:5px}
+.check-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
+.check-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--green)}
+.check-item.done span{text-decoration:line-through;color:var(--text3)}
+.add-check-row{display:flex;gap:6px;margin-top:8px}
+.add-check-input{flex:1;padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;background:var(--surface);color:var(--text)}
+.add-check-input:focus{border-color:var(--accent)}
+.add-check-btn{padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+
+/* CARD DATES */
+.card-dates{display:flex;gap:14px;padding:9px 18px;background:var(--bg);border-top:1px solid var(--border);font-size:12px;align-items:center;flex-wrap:wrap}
+.date-label{color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.date-val{font-weight:600;color:var(--text)}
+.date-val.red{color:var(--red)}.date-val.amber{color:var(--amber)}
+.days-left{margin-left:auto;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+
+/* CARD RIGHT */
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+.match-score{font-size:20px;font-weight:700;font-family:'DM Serif Display',serif;line-height:1}
+.match-label{font-size:10px;color:var(--text3);text-align:right;text-transform:uppercase;letter-spacing:.05em}
+.card-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.action-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--text2);display:flex;align-items:center;gap:3px;white-space:nowrap}
+.action-btn:hover{background:#F0EDE6}
+.action-btn.file-btn{color:var(--green);border-color:var(--green)}
+.action-btn.file-btn:hover{background:var(--green-bg)}
+.action-btn.delete-btn{color:var(--red);border-color:transparent}
+.action-btn.delete-btn:hover{background:var(--red-bg);border-color:var(--red)}
+.action-btn.edit-btn{color:var(--accent);border-color:transparent}
+.action-btn.edit-btn:hover{background:var(--accent-light);border-color:var(--accent)}
+.action-btn.pdf-btn{color:var(--purple);border-color:transparent}
+.action-btn.pdf-btn:hover{background:var(--purple-bg);border-color:var(--purple)}
+.action-btn.ai-btn{color:var(--amber);border-color:transparent}
+.action-btn.ai-btn:hover{background:var(--amber-bg);border-color:var(--amber)}
+
+/* AI SUMMARY PANEL */
+.ai-panel{padding:12px 18px;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-top:1px solid #FDE68A}
+.ai-panel-header{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--amber)}
+.ai-content{font-size:13px;color:#78350F;line-height:1.7;white-space:pre-wrap}
+.ai-loading{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--amber)}
+.dot-bounce{display:flex;gap:4px}
+.dot-bounce span{width:6px;height:6px;background:var(--amber);border-radius:50%;animation:bounce .8s infinite}
+.dot-bounce span:nth-child(2){animation-delay:.15s}
+.dot-bounce span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-header{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10}
+.modal-title{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:18px;color:var(--text2);display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:#F0EDE6}
+.modal-body{padding:18px 24px;display:flex;flex-direction:column;gap:14px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group.full{grid-column:1/-1}
+.form-select,.form-textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;width:100%}
+.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-textarea{resize:vertical;min-height:70px}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
+.btn-cancel{padding:9px 20px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2)}
+.btn-cancel:hover{background:#F0EDE6}
+.btn-save{padding:9px 24px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-save:hover{background:#153d6b;transform:translateY(-1px)}
+
+/* CHECKLIST MODAL SECTION */
+.checklist-modal-section{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.checklist-modal-header{padding:10px 14px;background:#F7F5F0;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.checklist-modal-body{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.check-preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.check-preset-btn{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;color:var(--text2);text-align:left;transition:all .15s}
+.check-preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.empty-title{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:6px}
+
+.notif{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.notif.show{transform:translateY(0);opacity:1}
+
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(247,245,240,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loading-overlay.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.section-divider{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:2px}
+
+@media(max-width:640px){
+  .header,.stats-bar,.filters,.main{padding-left:16px;padding-right:16px}
+  .form-row{grid-template-columns:1fr}
+  .card-inner{grid-template-columns:1fr}
+  .card-right{flex-direction:row;align-items:center}
+  .check-preset-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--text2)">Please wait...</div></div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-top">
+      <div class="auth-logo">CA</div>
+      <div class="auth-title">CA Tender Tracker</div>
+      <div class="auth-sub">Empanelment & Audit Dashboard</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+      </div>
+      <div id="auth-error" class="auth-error"></div>
+      <div id="auth-success" class="auth-success"></div>
+      <div id="login-form">
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="login-email" placeholder="yourname@gmail.com"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="login-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="btn-primary" id="login-btn" onclick="doLogin()">Login</button>
+      </div>
+      <div id="register-form" style="display:none">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" type="text" id="reg-name" placeholder="CA Ramesh Sharma"></div>
+        <div class="form-group"><label class="form-label">Firm Name</label><input class="form-input" type="text" id="reg-firm" placeholder="Sharma & Associates"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="reg-email"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="reg-password" onkeydown="if(event.key==='Enter')doRegister()"></div>
+        <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setup-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px">
+  <div class="setup-card">
+    <div class="setup-header">
+      <div class="auth-logo" style="width:44px;height:44px;flex-shrink:0;font-size:18px">CA</div>
+      <div><h2>One-time Supabase Setup</h2><p>Free forever. Takes 5 minutes.</p></div>
+    </div>
+    <div class="setup-body">
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Create free Supabase account</h3>
+          <p>Go to <strong>supabase.com</strong> → Sign up → New project → Name: ca-tender-tracker → Wait for setup.</p>
+          <a href="https://supabase.com" target="_blank" style="display:inline-block;padding:7px 16px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">Open Supabase →</a>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Run this SQL in Supabase SQL Editor</h3>
+          <button class="copy-btn" onclick="copySQL()">Copy</button>
+          <div class="code-box" id="sql-block">create table if not exists public.profiles (
+  id uuid references auth.users on delete cascade primary key,
+  email text, full_name text, firm_name text,
+  role text default 'user', created_at timestamptz default now()
+);
+create table if not exists public.tenders (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade,
+  title text not null, org text, source text, type text, value text,
+  start_date date, end_date date not null, state text, score int,
+  ref text, notes text, filed boolean default false,
+  checklist jsonb default '[]'::jsonb,
+  created_at timestamptz default now()
+);
+alter table public.profiles enable row level security;
+alter table public.tenders enable row level security;
+create policy "own profile" on public.profiles for all using (auth.uid()=id);
+create policy "own tenders" on public.tenders for all using (auth.uid()=user_id);
+create or replace function public.handle_new_user() returns trigger as $$
+begin insert into public.profiles(id,email) values(new.id,new.email); return new; end;
+$$ language plpgsql security definer;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+for each row execute procedure public.handle_new_user();</div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Paste your keys (Settings → API in Supabase)</h3>
+          <div class="form-group" style="margin-bottom:10px"><label class="form-label">Project URL</label><input class="form-input" id="setup-url" placeholder="https://xxxxxxxxxxx.supabase.co"></div>
+          <div class="form-group"><label class="form-label">Anon Public Key</label><input class="form-input" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
+          <div id="connect-status" class="connect-status"></div>
+          <button class="btn-connect" onclick="connectSupabase()">Connect & Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" style="display:none">
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-logo">CA</div>
+      <div><div class="header-title">Tender Tracker</div><div class="header-sub">Empanelment & Audit Dashboard</div></div>
+    </div>
+    <div class="header-right">
+      <div class="user-pill" id="user-pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="user-name-display">User</span>
+      </div>
+      <button class="btn-add" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Tender
+      </button>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-val blue" id="st-total">0</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-item"><div class="stat-val red" id="st-urgent">0</div><div class="stat-lbl">Urgent (&le;7d)</div></div>
+    <div class="stat-item"><div class="stat-val amber" id="st-upcoming">0</div><div class="stat-lbl">14 days</div></div>
+    <div class="stat-item"><div class="stat-val green" id="st-filed">0</div><div class="stat-lbl">Filed</div></div>
+    <div class="stat-item"><div class="stat-val" id="st-open">0</div><div class="stat-lbl">Open</div></div>
+    <div class="stat-item"><div class="stat-val green" id="st-docs">0%</div><div class="stat-lbl">Docs Ready</div></div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('open',this)">Open</button>
+    <button class="filter-btn" onclick="setFilter('urgent',this)">Urgent</button>
+    <button class="filter-btn" onclick="setFilter('filed',this)">Filed</button>
+    <button class="filter-btn" onclick="setFilter('empanelment',this)">Empanelment</button>
+    <button class="filter-btn" onclick="setFilter('statutory audit',this)">Statutory</button>
+    <button class="filter-btn" onclick="setFilter('concurrent audit',this)">Concurrent</button>
+    <button class="filter-btn" onclick="setFilter('internal audit',this)">Internal</button>
+    <input class="search-box" type="text" placeholder="Search..." oninput="renderTenders()" id="search-box">
+  </div>
+
+  <div class="main">
+    <div class="tender-grid" id="tender-grid"></div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add New Tender</div>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="section-divider">Basic Details</div>
+      <div class="form-group full"><label class="form-label">Tender Title *</label><input class="form-input" id="f-title" placeholder="e.g. Statutory Audit — Meerut Development Authority"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Organisation *</label><input class="form-input" id="f-org" placeholder="e.g. SBI, CAG, Meerut Nagar Nigam"></div>
+        <div class="form-group"><label class="form-label">Source / Portal</label><input class="form-input" id="f-source" placeholder="e.g. CPP-GePM, ICAI PDC"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="f-type">
+            <option value="statutory audit">Statutory Audit</option>
+            <option value="internal audit">Internal Audit</option>
+            <option value="concurrent audit">Concurrent Audit</option>
+            <option value="tax audit">Tax Audit</option>
+            <option value="revenue audit">Revenue Audit</option>
+            <option value="empanelment">Empanelment</option>
+            <option value="stock audit">Stock Audit</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <select class="form-select" id="f-state">
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Central">Central / All-India</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Haryana">Haryana</option>
+            <option value="Bihar">Bihar</option>
+            <option value="Uttarakhand">Uttarakhand</option>
+            <option value="MP">Madhya Pradesh</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Value / Fee</label><input class="form-input" id="f-value" placeholder="e.g. Rs.3.5 lakh"></div>
+        <div class="form-group"><label class="form-label">Match Score (%)</label><input class="form-input" type="number" id="f-score" min="0" max="100" placeholder="e.g. 85"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" type="date" id="f-start"></div>
+        <div class="form-group"><label class="form-label">End Date / Deadline *</label><input class="form-input" type="date" id="f-end"></div>
+      </div>
+      <div class="form-group full"><label class="form-label">Reference No. / Link</label><input class="form-input" id="f-ref" placeholder="e.g. CPP/2026/UP/48291"></div>
+      <div class="form-group full"><label class="form-label">Notes / Eligibility</label><textarea class="form-textarea" id="f-notes" placeholder="Eligibility criteria, special conditions, important notes..."></textarea></div>
+
+      <div class="section-divider">Document Checklist</div>
+      <div class="checklist-modal-section">
+        <div class="checklist-modal-header">Quick add standard documents</div>
+        <div class="checklist-modal-body">
+          <div class="check-preset-grid" id="preset-grid"></div>
+          <div style="margin-top:10px;font-size:12px;color:var(--text3);margin-bottom:6px">Or add custom document:</div>
+          <div style="display:flex;gap:6px">
+            <input class="form-input" id="custom-doc-input" placeholder="e.g. Board Resolution" style="font-size:13px;padding:7px 12px" onkeydown="if(event.key==='Enter')addCustomDoc()">
+            <button onclick="addCustomDoc()" style="padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">Add</button>
+          </div>
+          <div id="modal-checklist-items" style="margin-top:10px;display:flex;flex-direction:column;gap:5px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveTender()">Save Tender</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const { createClient } = supabase;
+let sb = null, currentUser = null, currentProfile = null;
+let tenders = [], currentFilter = 'all', editingId = null;
+let modalChecklist = [];
+let openAIPanels = {};
+const CRED_KEY = 'ca_sb_creds_v2';
+
+const PRESET_DOCS = [
+  'ICAI Firm Registration Certificate','PAN Card of Firm','GST Registration Certificate',
+  'Partnership Deed / LLP Agreement','CA Certificate of Practice (CoP)',
+  'RBI Unique Code Number (UCN)','C&AG Empanelment Certificate',
+  'Last 3 Years Balance Sheet','Last 3 Years Audit Reports',
+  'Firm Profile / Brochure','List of Partners with qualifications',
+  'Declaration of no conflict of interest','Digital Signature Certificate (DSC)',
+  'ICAI Concurrent Audit Certificate','Bank Account Details / NEFT form',
+  'Experience certificates of prior audits','EMD / Earnest Money Deposit (if required)',
+  'Covering Letter on Firm letterhead','Power of Attorney (if applicable)',
+  'Aadhar / ID of signing partner'
+];
+
+// ── INIT ─────────────────────────────────────────────────
+async function init() {
+  showLoading(true);
+  buildPresetGrid();
+  const creds = getCreds();
+  if (!creds) { showSetup(); showLoading(false); return; }
+  try {
+    sb = createClient(creds.url, creds.key);
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) { currentUser = session.user; await loadProfile(); showApp(); }
+    else showAuth();
+  } catch(e) { showSetup(); }
+  showLoading(false);
+}
+
+function getCreds() { try { const c=localStorage.getItem(CRED_KEY); return c?JSON.parse(c):null; } catch(e){return null;} }
+function showLoading(v) { document.getElementById('loading').classList.toggle('show',v); }
+function showAuth() { document.getElementById('auth-screen').style.display='flex'; document.getElementById('setup-screen').style.display='none'; document.getElementById('app-screen').style.display='none'; }
+function showSetup() { document.getElementById('auth-screen').style.display='none'; document.getElementById('setup-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
+function showApp() {
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  const name = currentProfile?.full_name || currentUser?.email || 'User';
+  document.getElementById('user-name-display').textContent = name;
+  loadTenders();
+}
+
+// ── SETUP ────────────────────────────────────────────────
+async function connectSupabase() {
+  const url = document.getElementById('setup-url').value.trim();
+  const key = document.getElementById('setup-key').value.trim();
+  const st  = document.getElementById('connect-status');
+  if (!url||!key) { st.textContent='Please enter both URL and key.'; st.className='connect-status err'; return; }
+  try {
+    const client = createClient(url,key);
+    const { error } = await client.from('profiles').select('id').limit(1);
+    if (error && !['PGRST116','42P01'].includes(error.code)) throw error;
+    localStorage.setItem(CRED_KEY, JSON.stringify({url,key}));
+    st.textContent='Connected! Redirecting...'; st.className='connect-status ok';
+    sb = client; setTimeout(()=>showAuth(),1200);
+  } catch(e) { st.textContent='Failed: '+(e.message||'Check URL and key.'); st.className='connect-status err'; }
+}
+
+function copySQL() { navigator.clipboard.writeText(document.getElementById('sql-block').textContent).then(()=>notify('SQL copied!')); }
+
+// ── AUTH ─────────────────────────────────────────────────
+function switchAuthTab(t) {
+  document.getElementById('login-form').style.display    = t==='login'?'block':'none';
+  document.getElementById('register-form').style.display = t==='register'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('auth-error').style.display='none';
+  document.getElementById('auth-success').style.display='none';
+}
+function showAuthErr(m) { const e=document.getElementById('auth-error'); e.textContent=m; e.style.display='block'; document.getElementById('auth-success').style.display='none'; }
+function showAuthOk(m)  { const e=document.getElementById('auth-success'); e.textContent=m; e.style.display='block'; document.getElementById('auth-error').style.display='none'; }
+
+async function doLogin() {
+  const email=document.getElementById('login-email').value.trim(), pass=document.getElementById('login-password').value;
+  if(!email||!pass){showAuthErr('Please enter email and password.');return;}
+  const btn=document.getElementById('login-btn'); btn.disabled=true; btn.textContent='Logging in...';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false; btn.textContent='Login';
+  if(error){showAuthErr(error.message);return;}
+  currentUser=data.user; await loadProfile(); showApp();
+}
+
+async function doRegister() {
+  const name=document.getElementById('reg-name').value.trim(), firm=document.getElementById('reg-firm').value.trim();
+  const email=document.getElementById('reg-email').value.trim(), pass=document.getElementById('reg-password').value;
+  if(!name||!email||!pass){showAuthErr('Please fill all fields.');return;}
+  if(pass.length<6){showAuthErr('Password must be at least 6 characters.');return;}
+  const btn=document.getElementById('reg-btn'); btn.disabled=true; btn.textContent='Creating...';
+  const {data,error}=await sb.auth.signUp({email,password:pass});
+  btn.disabled=false; btn.textContent='Create Account';
+  if(error){showAuthErr(error.message);return;}
+  if(data.user){ await sb.from('profiles').update({full_name:name,firm_name:firm}).eq('id',data.user.id); currentUser=data.user; await loadProfile(); showApp(); }
+  else showAuthOk('Account created! Check email to confirm, then login.');
+}
+
+async function doLogout() { await sb.auth.signOut(); currentUser=null; currentProfile=null; tenders=[]; showAuth(); }
+async function loadProfile() { const {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single(); currentProfile=data; }
+
+// ── TENDERS ──────────────────────────────────────────────
+async function loadTenders() {
+  showLoading(true);
+  const {data,error}=await sb.from('tenders').select('*').eq('user_id',currentUser.id).order('end_date',{ascending:true});
+  showLoading(false);
+  if(error){notify('Error: '+error.message);return;}
+  tenders=data||[];
+  renderTenders();
+}
+
+function today(){return new Date().toISOString().split('T')[0];}
+function daysLeft(d){if(!d)return 999; return Math.ceil((new Date(d)-new Date(today()))/86400000);}
+function urgClass(t){if(t.filed)return 'filed-card'; const d=daysLeft(t.end_date); return d<=7?'urgent':d<=14?'warning':'safe';}
+function badgeClass(t){if(t.filed)return 'filed-b'; const d=daysLeft(t.end_date); return d<=0?'urgent':d<=7?'urgent':d<=14?'warning':'safe';}
+function badgeText(t){if(t.filed)return 'Filed'; const d=daysLeft(t.end_date); if(d<=0)return 'Overdue!'; if(d<=7)return d+'d left — Urgent!'; if(d<=14)return d+'d left'; return d+' days left';}
+function fmtDate(d){if(!d)return '—'; return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+
+function getChecklist(t){
+  try{ const c=t.checklist; return Array.isArray(c)?c:(typeof c==='string'?JSON.parse(c):[]);}catch(e){return [];}
+}
+
+function checklistProgress(t){
+  const cl=getChecklist(t);
+  if(!cl.length)return {done:0,total:0,pct:0};
+  const done=cl.filter(c=>c.done).length;
+  return {done,total:cl.length,pct:Math.round(done/cl.length*100)};
+}
+
+function renderStats(){
+  const open=tenders.filter(t=>!t.filed);
+  const filed=tenders.filter(t=>t.filed).length;
+  const urgent=open.filter(t=>daysLeft(t.end_date)<=7).length;
+  const upcoming=open.filter(t=>{const d=daysLeft(t.end_date);return d>7&&d<=14;}).length;
+  const allPcts=tenders.map(t=>checklistProgress(t).pct);
+  const avgPct=allPcts.length?Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length):0;
+  document.getElementById('st-total').textContent=tenders.length;
+  document.getElementById('st-filed').textContent=filed;
+  document.getElementById('st-open').textContent=open.length;
+  document.getElementById('st-urgent').textContent=urgent;
+  document.getElementById('st-upcoming').textContent=upcoming;
+  document.getElementById('st-docs').textContent=avgPct+'%';
+}
+
+function getFiltered(){
+  const q=(document.getElementById('search-box')?.value||'').toLowerCase();
+  return tenders.filter(t=>{
+    const mf=currentFilter==='all'?true:currentFilter==='open'?!t.filed:currentFilter==='filed'?t.filed:currentFilter==='urgent'?(!t.filed&&daysLeft(t.end_date)<=7):t.type===currentFilter;
+    const ms=!q||(t.title||'').toLowerCase().includes(q)||(t.org||'').toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q)||(t.state||'').toLowerCase().includes(q);
+    return mf&&ms;
+  }).sort((a,b)=>{
+    if(a.filed!==b.filed)return a.filed?1:-1;
+    return daysLeft(a.end_date)-daysLeft(b.end_date);
+  });
+}
+
+function renderTenders(){
+  renderStats();
+  const grid=document.getElementById('tender-grid');
+  const list=getFiltered();
+  if(!list.length){
+    grid.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No tenders found</div><div style="font-size:13px;color:var(--text3)">Add a new tender or change the filter.</div></div>';
+    return;
+  }
+  grid.innerHTML=list.map(t=>{
+    const d=daysLeft(t.end_date);
+    const dc=t.filed?'':d<=7?'red':d<=14?'amber':'';
+    const sc=(t.score||0)>=80?'#2D7A4F':(t.score||0)>=60?'#B45309':'#6B6459';
+    const prog=checklistProgress(t);
+    const cl=getChecklist(t);
+    const showAI=openAIPanels[t.id];
+
+    return `
+    <div class="tender-card ${urgClass(t)}" id="card-${t.id}">
+      <div class="card-inner">
+        <div class="card-left">
+          <div class="card-top">
+            <div class="tender-title">${t.title}</div>
+            <span class="badge ${badgeClass(t)}">${badgeText(t)}</span>
+            <span class="badge ${t.type==='empanelment'?'empanel':'type-b'}">${t.type||'audit'}</span>
+          </div>
+          <div class="card-meta">
+            ${t.org?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>${t.org}</span>`:''}
+            ${t.state?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>${t.state}</span>`:''}
+            ${t.source?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>${t.source}</span>`:''}
+            ${t.value?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>${t.value}</span>`:''}
+          </div>
+          ${t.notes?`<div class="card-notes">${t.notes}</div>`:''}
+        </div>
+        <div class="card-right">
+          ${t.score?`<div><div class="match-score" style="color:${sc}">${t.score}%</div><div class="match-label">match</div></div>`:''}
+          <div class="card-actions">
+            <button class="action-btn edit-btn" onclick="editTender('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
+            ${!t.filed
+              ?`<button class="action-btn file-btn" onclick="markFiled('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Filed</button>`
+              :`<button class="action-btn" onclick="markUnfiled('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Reopen</button>`
+            }
+            <button class="action-btn ai-btn" onclick="toggleAISummary('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>AI Summary</button>
+            <button class="action-btn pdf-btn" onclick="exportPDF('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>PDF</button>
+            <button class="action-btn delete-btn" onclick="deleteTender('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="checklist-bar">
+        <div class="checklist-header">
+          <span class="checklist-title">Document Checklist</span>
+          <span class="checklist-progress">${prog.done}/${prog.total} ready</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${prog.pct}%"></div></div>
+        <div class="checklist-items" id="cl-${t.id}">
+          ${cl.map((c,i)=>`
+            <div class="check-item ${c.done?'done':''}" id="ci-${t.id}-${i}">
+              <input type="checkbox" ${c.done?'checked':''} onchange="toggleCheck('${t.id}',${i},this.checked)">
+              <span>${c.text}</span>
+              <button onclick="removeCheck('${t.id}',${i})" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0 2px" title="Remove">&times;</button>
+            </div>
+          `).join('')}
+        </div>
+        <div class="add-check-row">
+          <input class="add-check-input" id="new-doc-${t.id}" placeholder="Add document..." onkeydown="if(event.key==='Enter')addCheckItem('${t.id}')">
+          <button class="add-check-btn" onclick="addCheckItem('${t.id}')">Add</button>
+        </div>
+      </div>
+
+      <!-- CARD DATES -->
+      <div class="card-dates">
+        ${t.start_date?`<span class="date-label">Start</span><span class="date-val" style="margin-right:12px">${fmtDate(t.start_date)}</span>`:''}
+        <span class="date-label">Deadline</span>
+        <span class="date-val ${dc}">${fmtDate(t.end_date)}</span>
+        <div class="days-left" style="color:${t.filed?'var(--text3)':d<=7?'var(--red)':d<=14?'var(--amber)':'var(--green)'}">
+          ${t.filed
+            ?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Filed`
+            :d<=0?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Overdue!`
+            :d<=7?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>${d} day${d===1?'':'s'} left — Act now!`
+            :`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${d} days left`
+          }
+        </div>
+        ${t.ref?`<div style="margin-left:8px;font-size:11px;color:var(--text3)">Ref: ${t.ref}</div>`:''}
+      </div>
+
+      <!-- AI PANEL -->
+      ${showAI?`
+      <div class="ai-panel" id="ai-panel-${t.id}">
+        <div class="ai-panel-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          AI Summary
+          <button onclick="toggleAISummary('${t.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--amber);font-size:16px">&#x2715;</button>
+        </div>
+        <div class="ai-content" id="ai-content-${t.id}">
+          <div class="ai-loading"><div class="dot-bounce"><span></span><span></span><span></span></div> Generating summary...</div>
+        </div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  // trigger AI generation for open panels
+  Object.keys(openAIPanels).forEach(id=>{
+    if(openAIPanels[id]==='pending') generateAI(id);
+  });
+}
+
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTenders();
+}
+
+// ── CHECKLIST ────────────────────────────────────────────
+async function toggleCheck(tid,idx,val){
+  const t=tenders.find(x=>x.id===tid); if(!t)return;
+  const cl=getChecklist(t);
+  cl[idx].done=val;
+  t.checklist=cl;
+  await sb.from('tenders').update({checklist:cl}).eq('id',tid);
+  renderTenders();
+}
+
+async function removeCheck(tid,idx){
+  const t=tenders.find(x=>x.id===tid); if(!t)return;
+  const cl=getChecklist(t);
+  cl.splice(idx,1);
+  t.checklist=cl;
+  await sb.from('tenders').update({checklist:cl}).eq('id',tid);
+  renderTenders();
+}
+
+async function addCheckItem(tid){
+  const inp=document.getElementById('new-doc-'+tid);
+  if(!inp||!inp.value.trim())return;
+  const t=tenders.find(x=>x.id===tid); if(!t)return;
+  const cl=getChecklist(t);
+  cl.push({text:inp.value.trim(),done:false});
+  t.checklist=cl;
+  await sb.from('tenders').update({checklist:cl}).eq('id',tid);
+  inp.value='';
+  renderTenders();
+}
+
+// ── MODAL ────────────────────────────────────────────────
+function buildPresetGrid(){
+  const grid=document.getElementById('preset-grid');
+  if(!grid)return;
+  grid.innerHTML=PRESET_DOCS.map((d,i)=>`<button class="check-preset-btn" onclick="addPresetDoc(${i})">${d}</button>`).join('');
+}
+
+function addPresetDoc(i){
+  const text=PRESET_DOCS[i];
+  if(!modalChecklist.find(c=>c.text===text)){
+    modalChecklist.push({text,done:false});
+    renderModalChecklist();
+  }
+  notify('Added: '+text);
+}
+
+function addCustomDoc(){
+  const inp=document.getElementById('custom-doc-input');
+  if(!inp||!inp.value.trim())return;
+  modalChecklist.push({text:inp.value.trim(),done:false});
+  inp.value='';
+  renderModalChecklist();
+}
+
+function renderModalChecklist(){
+  const el=document.getElementById('modal-checklist-items');
+  if(!el)return;
+  el.innerHTML=modalChecklist.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="flex:1">${c.text}</span>
+      <button onclick="removeModalDoc(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px">&times;</button>
+    </div>`).join('');
+}
+
+function removeModalDoc(i){ modalChecklist.splice(i,1); renderModalChecklist(); }
+
+function openModal(id){
+  editingId=id||null;
+  modalChecklist=[];
+  document.getElementById('modal-title').textContent=id?'Edit Tender':'Add New Tender';
+  if(id){
+    const t=tenders.find(x=>x.id===id);
+    if(t){
+      document.getElementById('f-title').value=t.title||'';
+      document.getElementById('f-org').value=t.org||'';
+      document.getElementById('f-source').value=t.source||'';
+      document.getElementById('f-type').value=t.type||'statutory audit';
+      document.getElementById('f-state').value=t.state||'Uttar Pradesh';
+      document.getElementById('f-value').value=t.value||'';
+      document.getElementById('f-score').value=t.score||'';
+      document.getElementById('f-start').value=t.start_date||'';
+      document.getElementById('f-end').value=t.end_date||'';
+      document.getElementById('f-ref').value=t.ref||'';
+      document.getElementById('f-notes').value=t.notes||'';
+      modalChecklist=JSON.parse(JSON.stringify(getChecklist(t)));
+    }
+  } else {
+    ['f-title','f-org','f-source','f-value','f-ref','f-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-type').value='statutory audit';
+    document.getElementById('f-state').value='Uttar Pradesh';
+    document.getElementById('f-score').value='';
+    document.getElementById('f-start').value=today();
+    document.getElementById('f-end').value='';
+  }
+  renderModalChecklist();
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('f-title').focus(),100);
+}
+
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); editingId=null; }
+function closeModalOutside(e){ if(e.target===document.getElementById('modal-overlay'))closeModal(); }
+function editTender(id){ openModal(id); }
+
+async function saveTender(){
+  const title=document.getElementById('f-title').value.trim();
+  const org=document.getElementById('f-org').value.trim();
+  const end=document.getElementById('f-end').value;
+  if(!title||!org||!end){notify('Please fill Title, Organisation and Deadline.');return;}
+  const data={
+    title,org,
+    source:document.getElementById('f-source').value.trim(),
+    type:document.getElementById('f-type').value,
+    state:document.getElementById('f-state').value,
+    value:document.getElementById('f-value').value.trim(),
+    score:parseInt(document.getElementById('f-score').value)||null,
+    start_date:document.getElementById('f-start').value||null,
+    end_date:end,
+    ref:document.getElementById('f-ref').value.trim(),
+    notes:document.getElementById('f-notes').value.trim(),
+    checklist:modalChecklist,
+  };
+  showLoading(true);
+  let error;
+  if(editingId){ ({error}=await sb.from('tenders').update(data).eq('id',editingId)); }
+  else { data.user_id=currentUser.id; data.filed=false; ({error}=await sb.from('tenders').insert(data)); }
+  showLoading(false);
+  if(error){notify('Error: '+error.message);return;}
+  notify(editingId?'Updated!':'Tender added!');
+  closeModal();
+  await loadTenders();
+}
+
+async function markFiled(id){ await sb.from('tenders').update({filed:true}).eq('id',id); notify('Marked as filed!'); await loadTenders(); }
+async function markUnfiled(id){ await sb.from('tenders').update({filed:false}).eq('id',id); notify('Reopened.'); await loadTenders(); }
+async function deleteTender(id){ if(!confirm('Delete this tender?'))return; await sb.from('tenders').delete().eq('id',id); notify('Deleted.'); await loadTenders(); }
+
+// ── AI SUMMARY ───────────────────────────────────────────
+function toggleAISummary(id){
+  if(openAIPanels[id]){ delete openAIPanels[id]; }
+  else { openAIPanels[id]='pending'; }
+  renderTenders();
+}
+
+async function generateAI(id){
+  openAIPanels[id]='done';
+  const t=tenders.find(x=>x.id===id); if(!t)return;
+  const el=document.getElementById('ai-content-'+id); if(!el)return;
+  const cl=getChecklist(t);
+  const prog=checklistProgress(t);
+  const d=daysLeft(t.end_date);
+  const prompt=`You are an assistant for a CA firm in India. Provide a professional summary for this tender opportunity:
+
+Title: ${t.title}
+Organisation: ${t.org}
+Type: ${t.type}
+State: ${t.state}
+Value: ${t.value||'Not specified'}
+Deadline: ${t.end_date} (${d} days left)
+Source: ${t.source||'Not specified'}
+Reference: ${t.ref||'Not specified'}
+Notes: ${t.notes||'None'}
+Documents ready: ${prog.done} of ${prog.total}
+Filed: ${t.filed?'Yes':'No'}
+
+Write a concise 4-5 sentence summary covering:
+1. What this opportunity is about
+2. Key eligibility or deadline concern
+3. Document preparation status
+4. One specific action to take today
+
+Be practical and professional. Indian CA context.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'Could not generate summary.';
+    if(el) el.innerHTML=text.replace(/\n/g,'<br>');
+  }catch(e){
+    if(el) el.textContent='Summary not available. Check your internet connection.';
+  }
+}
+
+// ── PDF EXPORT ───────────────────────────────────────────
+async function exportPDF(id){
+  const t=tenders.find(x=>x.id===id); if(!t)return;
+  notify('Generating PDF...');
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const pw=210, margin=18, cw=pw-margin*2;
+    let y=margin;
+
+    // Header bar
+    doc.setFillColor(27,75,130);
+    doc.rect(0,0,210,28,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica','bold');
+    doc.text('CA Tender Tracker',margin,12);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','normal');
+    doc.text('Tender Document Summary Report',margin,19);
+    doc.text('Generated: '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),pw-margin,19,{align:'right'});
+    y=38;
+
+    // Status badge
+    const d=daysLeft(t.end_date);
+    const statusColor=t.filed?[107,114,128]:d<=7?[185,28,28]:d<=14?[180,83,9]:[45,122,79];
+    const statusText=t.filed?'FILED':d<=0?'OVERDUE':d<=7?'URGENT — '+d+' DAYS LEFT':d<=14?'DUE IN '+d+' DAYS':'OPEN — '+d+' DAYS LEFT';
+    doc.setFillColor(...statusColor);
+    doc.roundedRect(margin,y,cw,10,2,2,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','bold');
+    doc.text(statusText,margin+cw/2,y+6.5,{align:'center'});
+    y+=16;
+
+    // Title
+    doc.setTextColor(26,24,20);
+    doc.setFontSize(13);
+    doc.setFont('helvetica','bold');
+    const titleLines=doc.splitTextToSize(t.title,cw);
+    doc.text(titleLines,margin,y);
+    y+=titleLines.length*7+4;
+
+    // Details grid
+    const fields=[
+      ['Organisation',t.org],['Type',t.type],['State',t.state||'—'],
+      ['Value / Fee',t.value||'—'],['Source / Portal',t.source||'—'],
+      ['Reference No.',t.ref||'—'],['Start Date',fmtDate(t.start_date)],
+      ['Deadline',fmtDate(t.end_date)],['Match Score',t.score?(t.score+'%'):'—'],
+    ];
+    doc.setFontSize(9);
+    const colW=cw/2-3;
+    fields.forEach((f,i)=>{
+      const col=i%2, row=Math.floor(i/2);
+      const fx=margin+(col*(colW+6)), fy=y+(row*10);
+      if(i===0){
+        doc.setFillColor(240,237,230);
+        doc.rect(margin,y-1,cw,fields.length%2===0?(Math.ceil(fields.length/2)*10+2):((Math.ceil(fields.length/2))*10+2),'' );
+      }
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(107,100,89);
+      doc.text(f[0]+':',fx,fy+5);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(26,24,20);
+      doc.text(String(f[1]||'—'),fx+38,fy+5);
+    });
+    y+=Math.ceil(fields.length/2)*10+8;
+
+    // Notes
+    if(t.notes){
+      doc.setFillColor(247,245,240);
+      doc.setDrawColor(226,221,213);
+      doc.roundedRect(margin,y,cw,6,'','');
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.setTextColor(107,100,89);
+      doc.text('Notes / Eligibility',margin+2,y+4);
+      y+=8;
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(26,24,20);
+      doc.setFontSize(9);
+      const noteLines=doc.splitTextToSize(t.notes,cw);
+      doc.text(noteLines,margin,y);
+      y+=noteLines.length*5+6;
+    }
+
+    // Checklist
+    const cl=getChecklist(t);
+    if(cl.length){
+      const prog=checklistProgress(t);
+      doc.setFillColor(27,75,130);
+      doc.rect(margin,y,cw,8,'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10);
+      doc.text('Document Checklist',margin+3,y+5.5);
+      doc.text(prog.done+'/'+prog.total+' Ready  ('+prog.pct+'%)',pw-margin-2,y+5.5,{align:'right'});
+      y+=12;
+
+      cl.forEach((c,i)=>{
+        if(y>270){doc.addPage();y=margin;}
+        const bg=i%2===0?[255,255,255]:[247,245,240];
+        doc.setFillColor(...bg);
+        doc.rect(margin,y-1,cw,8,'F');
+        // Checkbox
+        doc.setDrawColor(180,175,165);
+        doc.rect(margin+2,y+1,5,5);
+        if(c.done){
+          doc.setDrawColor(45,122,79);
+          doc.setLineWidth(0.8);
+          doc.line(margin+3,y+3.5,margin+4.5,y+5);
+          doc.line(margin+4.5,y+5,margin+7,y+2.5);
+          doc.setLineWidth(0.2);
+          doc.setDrawColor(180,175,165);
+        }
+        doc.setFont('helvetica',c.done?'normal':'normal');
+        doc.setTextColor(c.done?107:26,c.done?100:24,c.done?89:20);
+        doc.setFontSize(9);
+        const docText=doc.splitTextToSize(c.text,cw-14);
+        doc.text(docText,margin+10,y+4.5);
+        if(c.done){
+          doc.setDrawColor(107,100,89);
+          doc.setLineWidth(0.3);
+          doc.line(margin+10,y+3.5,margin+10+doc.getTextWidth(docText[0]),y+3.5);
+          doc.setLineWidth(0.2);
+        }
+        y+=docText.length>1?docText.length*5+3:8;
+      });
+      y+=4;
+    }
+
+    // Footer
+    if(y<250){
+      doc.setFillColor(240,237,230);
+      doc.rect(0,282,210,15,'F');
+      doc.setTextColor(107,100,89);
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.text('CA Tender Tracker  |  Confidential  |  '+currentProfile?.firm_name||'',margin,289);
+      doc.text('Page 1',pw-margin,289,{align:'right'});
+    }
+
+    doc.save('Tender_'+t.title.substring(0,30).replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
+    notify('PDF downloaded!');
+  }catch(e){
+    notify('PDF error: '+e.message);
+    console.error(e);
+  }
+}
+
+function notify(msg){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+init();
+</script>
+</body>
+</html>
