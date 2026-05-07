@@ -7,13 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   --bg:#F7F5F0;--surface:#fff;--border:#E2DDD5;--text:#1A1814;
   --text2:#6B6459;--text3:#9B9088;--accent:#1B4B82;--accent-light:#E8F0FB;
   --green:#2D7A4F;--green-bg:#EAF5EF;--amber:#B45309;--amber-bg:#FEF3C7;
   --red:#B91C1C;--red-bg:#FEE2E2;--purple:#6D28D9;--purple-bg:#EDE9FE;
-  --radius:12px;--shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  --radius:12px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
@@ -27,48 +28,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .auth-sub{color:rgba(255,255,255,0.6);font-size:13px;margin-top:4px}
 .auth-body{padding:28px 32px}
 .auth-tabs{display:flex;margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.auth-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;background:transparent;border:none;font-family:'DM Sans',sans-serif;color:var(--text2);transition:all .15s}
+.auth-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;background:transparent;border:none;font-family:'DM Sans',sans-serif;color:var(--text2)}
 .auth-tab.active{background:var(--accent);color:#fff}
 .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .form-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
-.form-input{padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;width:100%}
+.form-input{padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none;width:100%}
 .form-input:focus{border-color:var(--accent)}
-.btn-primary{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px}
-.btn-primary:hover{background:#153d6b}
+.btn-primary{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed}
 .auth-error{background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
 .auth-success{background:var(--green-bg);color:var(--green);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
 
-/* SETUP */
-#setup-screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px}
-.setup-card{background:var(--surface);border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,0.1);width:100%;max-width:680px;overflow:hidden}
-.setup-header{background:var(--accent);padding:24px 32px;display:flex;align-items:center;gap:14px}
-.setup-header h2{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;font-weight:400}
-.setup-header p{color:rgba(255,255,255,0.6);font-size:13px;margin-top:2px}
-.setup-body{padding:28px 32px;display:flex;flex-direction:column;gap:20px}
-.setup-step{display:flex;gap:16px;align-items:flex-start}
-.step-num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;margin-top:2px}
-.step-content h3{font-size:15px;font-weight:600;margin-bottom:4px}
-.step-content p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
-.code-box{background:#1e1e2e;color:#cdd6f4;padding:12px 16px;border-radius:8px;font-family:monospace;font-size:11px;line-height:1.8;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto}
-.copy-btn{font-size:11px;padding:4px 10px;background:rgba(255,255,255,0.1);color:#cdd6f4;border:none;border-radius:4px;cursor:pointer;float:right;font-family:'DM Sans',sans-serif;margin-bottom:4px}
-.btn-connect{padding:11px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
-.connect-status{font-size:13px;padding:10px 14px;border-radius:8px;display:none;margin-top:8px}
-.connect-status.ok{background:var(--green-bg);color:var(--green);display:block}
-.connect-status.err{background:var(--red-bg);color:var(--red);display:block}
-
-/* APP HEADER */
+/* APP */
 #app-screen{display:none}
 .header{background:var(--accent);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
 .header-brand{display:flex;align-items:center;gap:12px}
 .header-logo{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;color:#fff;font-size:16px}
 .header-title{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;font-weight:400}
-.header-sub{color:rgba(255,255,255,0.55);font-size:12px;margin-top:1px}
+.header-sub{color:rgba(255,255,255,0.55);font-size:12px}
 .header-right{display:flex;gap:10px;align-items:center}
-.user-pill{background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}
-.btn-add{background:#fff;color:var(--accent);border:none;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
-.btn-add:hover{background:#f0f0f0;transform:translateY(-1px)}
+.user-pill{background:rgba(255,255,255,0.12);color:#fff;padding:6px 14px;border-radius:20px;font-size:12px}
+.btn-add{background:#fff;color:var(--accent);border:none;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
 .btn-logout{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.2);padding:7px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+
+/* TABS */
+.main-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;gap:0}
+.main-tab{padding:14px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all .15s;display:flex;align-items:center;gap:6px}
+.main-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.main-tab:hover{color:var(--text)}
+.tab-badge{background:var(--red-bg);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
 
 /* STATS */
 .stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto}
@@ -80,70 +68,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* FILTERS */
 .filters{padding:14px 32px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--bg);border-bottom:1px solid var(--border)}
-.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;font-weight:500}
-.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500}
 .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .search-box{margin-left:auto;padding:7px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--text);width:200px;outline:none}
 .search-box:focus{border-color:var(--accent)}
 
 /* MAIN */
 .main{padding:20px 32px}
-.tender-grid{display:flex;flex-direction:column;gap:12px}
+.tender-grid{display:flex;flex-direction:column;gap:10px}
 
 /* TENDER CARD */
-.tender-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:all .2s}
+.tender-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s}
 .tender-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08);transform:translateY(-1px)}
-.tender-card.filed{opacity:.6}
 .tender-card.urgent{border-left:4px solid var(--red)}
 .tender-card.warning{border-left:4px solid var(--amber)}
 .tender-card.safe{border-left:4px solid var(--green)}
-.tender-card.filed-card{border-left:4px solid #9CA3AF}
+.tender-card.archived{border-left:4px solid #9CA3AF;opacity:.7}
 .card-inner{padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
 .card-left{display:flex;flex-direction:column;gap:7px}
 .card-top{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
-.tender-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;flex:1;min-width:200px}
-.tender-card.filed .tender-title{text-decoration:line-through;color:var(--text3)}
+.tender-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;flex:1;min-width:180px}
 .badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .badge.urgent{background:var(--red-bg);color:var(--red)}
 .badge.warning{background:var(--amber-bg);color:var(--amber)}
 .badge.safe{background:var(--green-bg);color:var(--green)}
-.badge.filed-b{background:#F3F4F6;color:#6B7280}
+.badge.arch{background:#F3F4F6;color:#6B7280}
 .badge.empanel{background:var(--purple-bg);color:var(--purple)}
 .badge.type-b{background:var(--accent-light);color:var(--accent)}
-.card-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
+.card-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
 .meta-item{display:flex;align-items:center;gap:4px}
-.card-notes{font-size:12px;color:var(--text3);font-style:italic;line-height:1.5}
-
-/* CHECKLIST INSIDE CARD */
-.checklist-bar{padding:10px 18px;background:#FAFAF8;border-top:1px solid var(--border)}
-.checklist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.checklist-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
-.checklist-progress{font-size:11px;color:var(--text3)}
-.progress-bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-bottom:10px}
-.progress-bar-fill{height:4px;background:var(--green);border-radius:2px;transition:width .3s}
-.checklist-items{display:flex;flex-direction:column;gap:5px}
-.check-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text)}
-.check-item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--green)}
-.check-item.done span{text-decoration:line-through;color:var(--text3)}
-.add-check-row{display:flex;gap:6px;margin-top:8px}
-.add-check-input{flex:1;padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;background:var(--surface);color:var(--text)}
-.add-check-input:focus{border-color:var(--accent)}
-.add-check-btn{padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
-
-/* CARD DATES */
+.card-notes{font-size:12px;color:var(--text3);font-style:italic}
 .card-dates{display:flex;gap:14px;padding:9px 18px;background:var(--bg);border-top:1px solid var(--border);font-size:12px;align-items:center;flex-wrap:wrap}
 .date-label{color:var(--text3);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
-.date-val{font-weight:600;color:var(--text)}
+.date-val{font-weight:600}
 .date-val.red{color:var(--red)}.date-val.amber{color:var(--amber)}
 .days-left{margin-left:auto;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
-
-/* CARD RIGHT */
 .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
 .match-score{font-size:20px;font-weight:700;font-family:'DM Serif Display',serif;line-height:1}
 .match-label{font-size:10px;color:var(--text3);text-align:right;text-transform:uppercase;letter-spacing:.05em}
 .card-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
-.action-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;color:var(--text2);display:flex;align-items:center;gap:3px;white-space:nowrap}
-.action-btn:hover{background:#F0EDE6}
+.action-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:3px;white-space:nowrap}
+.action-btn:hover{background:var(--bg)}
 .action-btn.file-btn{color:var(--green);border-color:var(--green)}
 .action-btn.file-btn:hover{background:var(--green-bg)}
 .action-btn.delete-btn{color:var(--red);border-color:transparent}
@@ -155,65 +120,70 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .action-btn.ai-btn{color:var(--amber);border-color:transparent}
 .action-btn.ai-btn:hover{background:var(--amber-bg);border-color:var(--amber)}
 
-/* AI SUMMARY PANEL */
-.ai-panel{padding:12px 18px;background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border-top:1px solid #FDE68A}
-.ai-panel-header{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--amber)}
-.ai-content{font-size:13px;color:#78350F;line-height:1.7;white-space:pre-wrap}
-.ai-loading{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--amber)}
+/* AI PANEL */
+.ai-panel{padding:12px 18px;background:#FFFBEB;border-top:1px solid #FDE68A}
+.ai-panel-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px;font-weight:600;color:var(--amber)}
+.ai-content{font-size:13px;color:#78350F;line-height:1.7}
 .dot-bounce{display:flex;gap:4px}
 .dot-bounce span{width:6px;height:6px;background:var(--amber);border-radius:50%;animation:bounce .8s infinite}
 .dot-bounce span:nth-child(2){animation-delay:.15s}
 .dot-bounce span:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
 
+/* ANALYTICS */
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.ana-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px}
+.ana-card h3{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.ana-big{font-size:36px;font-weight:600;font-family:'DM Serif Display',serif;line-height:1;color:var(--accent)}
+.ana-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}
+.progress-row .label{flex:1;color:var(--text2)}
+.progress-row .count{font-weight:600;min-width:24px;text-align:right}
+.progress-track{width:80px;height:6px;background:var(--border);border-radius:3px;flex-shrink:0}
+.progress-fill{height:6px;border-radius:3px;background:var(--accent)}
+
+/* STATE TABLE */
+.state-table{width:100%;border-collapse:collapse;font-size:13px}
+.state-table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:var(--bg);border-bottom:1px solid var(--border)}
+.state-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.state-table tr:last-child td{border-bottom:none}
+.state-table tr:hover td{background:var(--bg)}
+.state-pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:16px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
 .modal-header{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10}
 .modal-title{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400}
 .modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:18px;color:var(--text2);display:flex;align-items:center;justify-content:center}
-.modal-close:hover{background:#F0EDE6}
 .modal-body{padding:18px 24px;display:flex;flex-direction:column;gap:14px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-group.full{grid-column:1/-1}
-.form-select,.form-textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;width:100%}
+.form-select,.form-textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none;width:100%}
 .form-select:focus,.form-textarea:focus{border-color:var(--accent)}
 .form-textarea{resize:vertical;min-height:70px}
 .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface)}
 .btn-cancel{padding:9px 20px;border:1px solid var(--border);border-radius:8px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2)}
-.btn-cancel:hover{background:#F0EDE6}
-.btn-save{padding:9px 24px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
-.btn-save:hover{background:#153d6b;transform:translateY(-1px)}
-
-/* CHECKLIST MODAL SECTION */
-.checklist-modal-section{border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.checklist-modal-header{padding:10px 14px;background:#F7F5F0;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
-.checklist-modal-body{padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-.check-preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
-.check-preset-btn{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;color:var(--text2);text-align:left;transition:all .15s}
-.check-preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.btn-save{padding:9px 24px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
 
 .empty{text-align:center;padding:60px 20px;color:var(--text3)}
 .empty-icon{font-size:48px;margin-bottom:12px;opacity:.3}
 .empty-title{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:6px}
-
-.notif{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+.notif{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s}
 .notif.show{transform:translateY(0);opacity:1}
-
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(247,245,240,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 .loading-overlay.show{display:flex}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-.section-divider{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:2px}
+.section-div{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:2px}
 
 @media(max-width:640px){
-  .header,.stats-bar,.filters,.main{padding-left:16px;padding-right:16px}
+  .header,.stats-bar,.filters,.main,.main-tabs{padding-left:16px;padding-right:16px}
   .form-row{grid-template-columns:1fr}
   .card-inner{grid-template-columns:1fr}
   .card-right{flex-direction:row;align-items:center}
-  .check-preset-grid{grid-template-columns:1fr}
+  .analytics-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -252,67 +222,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- SETUP -->
-<div id="setup-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:20px">
-  <div class="setup-card">
-    <div class="setup-header">
-      <div class="auth-logo" style="width:44px;height:44px;flex-shrink:0;font-size:18px">CA</div>
-      <div><h2>One-time Supabase Setup</h2><p>Free forever. Takes 5 minutes.</p></div>
-    </div>
-    <div class="setup-body">
-      <div class="setup-step">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <h3>Create free Supabase account</h3>
-          <p>Go to <strong>supabase.com</strong> → Sign up → New project → Name: ca-tender-tracker → Wait for setup.</p>
-          <a href="https://supabase.com" target="_blank" style="display:inline-block;padding:7px 16px;background:var(--accent);color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">Open Supabase →</a>
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <h3>Run this SQL in Supabase SQL Editor</h3>
-          <button class="copy-btn" onclick="copySQL()">Copy</button>
-          <div class="code-box" id="sql-block">create table if not exists public.profiles (
-  id uuid references auth.users on delete cascade primary key,
-  email text, full_name text, firm_name text,
-  role text default 'user', created_at timestamptz default now()
-);
-create table if not exists public.tenders (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references public.profiles(id) on delete cascade,
-  title text not null, org text, source text, type text, value text,
-  start_date date, end_date date not null, state text, score int,
-  ref text, notes text, filed boolean default false,
-  checklist jsonb default '[]'::jsonb,
-  created_at timestamptz default now()
-);
-alter table public.profiles enable row level security;
-alter table public.tenders enable row level security;
-create policy "own profile" on public.profiles for all using (auth.uid()=id);
-create policy "own tenders" on public.tenders for all using (auth.uid()=user_id);
-create or replace function public.handle_new_user() returns trigger as $$
-begin insert into public.profiles(id,email) values(new.id,new.email); return new; end;
-$$ language plpgsql security definer;
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created after insert on auth.users
-for each row execute procedure public.handle_new_user();</div>
-        </div>
-      </div>
-      <div class="setup-step">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <h3>Paste your keys (Settings → API in Supabase)</h3>
-          <div class="form-group" style="margin-bottom:10px"><label class="form-label">Project URL</label><input class="form-input" id="setup-url" placeholder="https://xxxxxxxxxxx.supabase.co"></div>
-          <div class="form-group"><label class="form-label">Anon Public Key</label><input class="form-input" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
-          <div id="connect-status" class="connect-status"></div>
-          <button class="btn-connect" onclick="connectSupabase()">Connect & Save</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- APP -->
 <div id="app-screen" style="display:none">
   <div class="header">
@@ -322,44 +231,115 @@ for each row execute procedure public.handle_new_user();</div>
     </div>
     <div class="header-right">
       <div class="user-pill" id="user-pill">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span id="user-name-display">User</span>
       </div>
-      <button class="btn-add" onclick="openModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Tender
-      </button>
+      <button class="btn-add" onclick="openModal()">+ Add Tender</button>
       <button class="btn-logout" onclick="doLogout()">Logout</button>
     </div>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-val blue" id="st-total">0</div><div class="stat-lbl">Total</div></div>
+  <!-- MAIN TABS -->
+  <div class="main-tabs">
+    <div class="main-tab active" onclick="switchTab('tenders',this)" id="tab-tenders">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Tenders <span class="tab-badge" id="urgent-badge" style="display:none">0</span>
+    </div>
+    <div class="main-tab" onclick="switchTab('analytics',this)" id="tab-analytics">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </div>
+    <div class="main-tab" onclick="switchTab('states',this)" id="tab-states">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      State-wise
+    </div>
+    <div class="main-tab" onclick="switchTab('archive',this)" id="tab-archive">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+      Archive <span id="archive-badge" style="font-size:10px;color:var(--text3);font-weight:400"></span>
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-item"><div class="stat-val blue" id="st-total">0</div><div class="stat-lbl">Total Open</div></div>
     <div class="stat-item"><div class="stat-val red" id="st-urgent">0</div><div class="stat-lbl">Urgent (&le;7d)</div></div>
     <div class="stat-item"><div class="stat-val amber" id="st-upcoming">0</div><div class="stat-lbl">14 days</div></div>
     <div class="stat-item"><div class="stat-val green" id="st-filed">0</div><div class="stat-lbl">Filed</div></div>
-    <div class="stat-item"><div class="stat-val" id="st-open">0</div><div class="stat-lbl">Open</div></div>
-    <div class="stat-item"><div class="stat-val green" id="st-docs">0%</div><div class="stat-lbl">Docs Ready</div></div>
+    <div class="stat-item"><div class="stat-val" id="st-value">0</div><div class="stat-lbl">Est. Value</div></div>
   </div>
 
-  <div class="filters">
-    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-    <button class="filter-btn" onclick="setFilter('open',this)">Open</button>
-    <button class="filter-btn" onclick="setFilter('urgent',this)">Urgent</button>
-    <button class="filter-btn" onclick="setFilter('filed',this)">Filed</button>
-    <button class="filter-btn" onclick="setFilter('empanelment',this)">Empanelment</button>
-    <button class="filter-btn" onclick="setFilter('statutory audit',this)">Statutory</button>
-    <button class="filter-btn" onclick="setFilter('concurrent audit',this)">Concurrent</button>
-    <button class="filter-btn" onclick="setFilter('internal audit',this)">Internal</button>
-    <input class="search-box" type="text" placeholder="Search..." oninput="renderTenders()" id="search-box">
+  <!-- TENDERS TAB -->
+  <div id="panel-tenders">
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('open',this)">Open</button>
+      <button class="filter-btn" onclick="setFilter('urgent',this)">Urgent</button>
+      <button class="filter-btn" onclick="setFilter('filed',this)">Filed</button>
+      <button class="filter-btn" onclick="setFilter('empanelment',this)">Empanelment</button>
+      <button class="filter-btn" onclick="setFilter('statutory audit',this)">Statutory</button>
+      <button class="filter-btn" onclick="setFilter('concurrent audit',this)">Concurrent</button>
+      <button class="filter-btn" onclick="setFilter('internal audit',this)">Internal</button>
+      <input class="search-box" type="text" placeholder="Search..." oninput="renderTenders()" id="search-box">
+    </div>
+    <div class="main"><div class="tender-grid" id="tender-grid"></div></div>
   </div>
 
-  <div class="main">
-    <div class="tender-grid" id="tender-grid"></div>
+  <!-- ANALYTICS TAB -->
+  <div id="panel-analytics" style="display:none">
+    <div class="main">
+      <div class="analytics-grid" id="analytics-grid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="ana-card">
+          <h3>By Type</h3>
+          <div id="ana-by-type"></div>
+        </div>
+        <div class="ana-card">
+          <h3>By Deadline</h3>
+          <div id="ana-by-deadline"></div>
+        </div>
+        <div class="ana-card">
+          <h3>By Match Score</h3>
+          <div id="ana-by-score"></div>
+        </div>
+        <div class="ana-card">
+          <h3>Filing Rate</h3>
+          <div id="ana-filing"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE TABLE TAB -->
+  <div id="panel-states" style="display:none">
+    <div class="main">
+      <div class="ana-card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:14px">Tenders by State</h3>
+        <table class="state-table" id="state-table">
+          <thead><tr>
+            <th>State</th>
+            <th>Total</th>
+            <th>Open</th>
+            <th>Urgent</th>
+            <th>Filed</th>
+            <th>Est. Value</th>
+            <th>Types</th>
+          </tr></thead>
+          <tbody id="state-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHIVE TAB -->
+  <div id="panel-archive" style="display:none">
+    <div class="filters">
+      <input class="search-box" type="text" placeholder="Search archive..." oninput="renderArchive()" id="archive-search" style="margin-left:0;width:250px">
+      <button class="filter-btn" onclick="clearArchive()" style="margin-left:auto;color:var(--red);border-color:var(--red)">Clear All Archive</button>
+    </div>
+    <div class="main"><div class="tender-grid" id="archive-grid"></div></div>
   </div>
 </div>
 
-<!-- ADD/EDIT MODAL -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-header">
@@ -367,15 +347,14 @@ for each row execute procedure public.handle_new_user();</div>
       <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     </div>
     <div class="modal-body">
-      <div class="section-divider">Basic Details</div>
+      <div class="section-div">Basic Details</div>
       <div class="form-group full"><label class="form-label">Tender Title *</label><input class="form-input" id="f-title" placeholder="e.g. Statutory Audit — Meerut Development Authority"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Organisation *</label><input class="form-input" id="f-org" placeholder="e.g. SBI, CAG, Meerut Nagar Nigam"></div>
         <div class="form-group"><label class="form-label">Source / Portal</label><input class="form-input" id="f-source" placeholder="e.g. CPP-GePM, ICAI PDC"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Type</label>
+        <div class="form-group"><label class="form-label">Type</label>
           <select class="form-select" id="f-type">
             <option value="statutory audit">Statutory Audit</option>
             <option value="internal audit">Internal Audit</option>
@@ -387,8 +366,7 @@ for each row execute procedure public.handle_new_user();</div>
             <option value="other">Other</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">State</label>
+        <div class="form-group"><label class="form-label">State</label>
           <select class="form-select" id="f-state">
             <option value="Uttar Pradesh">Uttar Pradesh</option>
             <option value="Central">Central / All-India</option>
@@ -400,7 +378,7 @@ for each row execute procedure public.handle_new_user();</div>
             <option value="Haryana">Haryana</option>
             <option value="Bihar">Bihar</option>
             <option value="Uttarakhand">Uttarakhand</option>
-            <option value="MP">Madhya Pradesh</option>
+            <option value="Madhya Pradesh">Madhya Pradesh</option>
             <option value="Other">Other</option>
           </select>
         </div>
@@ -411,24 +389,10 @@ for each row execute procedure public.handle_new_user();</div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Start Date</label><input class="form-input" type="date" id="f-start"></div>
-        <div class="form-group"><label class="form-label">End Date / Deadline *</label><input class="form-input" type="date" id="f-end"></div>
+        <div class="form-group"><label class="form-label">Deadline *</label><input class="form-input" type="date" id="f-end"></div>
       </div>
-      <div class="form-group full"><label class="form-label">Reference No. / Link</label><input class="form-input" id="f-ref" placeholder="e.g. CPP/2026/UP/48291"></div>
-      <div class="form-group full"><label class="form-label">Notes / Eligibility</label><textarea class="form-textarea" id="f-notes" placeholder="Eligibility criteria, special conditions, important notes..."></textarea></div>
-
-      <div class="section-divider">Document Checklist</div>
-      <div class="checklist-modal-section">
-        <div class="checklist-modal-header">Quick add standard documents</div>
-        <div class="checklist-modal-body">
-          <div class="check-preset-grid" id="preset-grid"></div>
-          <div style="margin-top:10px;font-size:12px;color:var(--text3);margin-bottom:6px">Or add custom document:</div>
-          <div style="display:flex;gap:6px">
-            <input class="form-input" id="custom-doc-input" placeholder="e.g. Board Resolution" style="font-size:13px;padding:7px 12px" onkeydown="if(event.key==='Enter')addCustomDoc()">
-            <button onclick="addCustomDoc()" style="padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap">Add</button>
-          </div>
-          <div id="modal-checklist-items" style="margin-top:10px;display:flex;flex-direction:column;gap:5px"></div>
-        </div>
-      </div>
+      <div class="form-group full"><label class="form-label">Reference No.</label><input class="form-input" id="f-ref" placeholder="e.g. CPP/2026/UP/48291"></div>
+      <div class="form-group full"><label class="form-label">Notes / Eligibility</label><textarea class="form-textarea" id="f-notes" placeholder="Eligibility criteria, documents needed, special conditions..."></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -441,78 +405,67 @@ for each row execute procedure public.handle_new_user();</div>
 
 <script>
 const { createClient } = supabase;
+const SUPABASE_URL = "https://jsajzdsxfygnlwcdjsru.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWp6ZHN4Znlnbmx3Y2Rqc3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDU3NjgsImV4cCI6MjA5MzcyMTc2OH0.p4GK1nshkwZv4WbLytfLqTyp4bC0PwT9fD-ZgRFnvig";
+
 let sb = null, currentUser = null, currentProfile = null;
 let tenders = [], currentFilter = 'all', editingId = null;
-let modalChecklist = [];
+let currentTab = 'tenders';
 let openAIPanels = {};
-const CRED_KEY = 'ca_sb_creds_v2';
 
-// ── HARDCODED SUPABASE KEYS ───────────────────────────────
-// Keys are embedded so users never see the setup screen
-const HARDCODED_URL = "https://jsajzdsxfygnlwcdjsru.supabase.co";
-const HARDCODED_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWp6ZHN4Znlnbmx3Y2Rqc3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNDU3NjgsImV4cCI6MjA5MzcyMTc2OH0.p4GK1nshkwZv4WbLytfLqTyp4bC0PwT9fD-ZgRFnvig";
-
-const PRESET_DOCS = [
-  'ICAI Firm Registration Certificate','PAN Card of Firm','GST Registration Certificate',
-  'Partnership Deed / LLP Agreement','CA Certificate of Practice (CoP)',
-  'RBI Unique Code Number (UCN)','C&AG Empanelment Certificate',
-  'Last 3 Years Balance Sheet','Last 3 Years Audit Reports',
-  'Firm Profile / Brochure','List of Partners with qualifications',
-  'Declaration of no conflict of interest','Digital Signature Certificate (DSC)',
-  'ICAI Concurrent Audit Certificate','Bank Account Details / NEFT form',
-  'Experience certificates of prior audits','EMD / Earnest Money Deposit (if required)',
-  'Covering Letter on Firm letterhead','Power of Attorney (if applicable)',
-  'Aadhar / ID of signing partner'
+// ── SEED DATA ─────────────────────────────────────────────
+const SEED_TENDERS = [
+  {title:"C&AG Empanelment — PSU Audit 2026-27",org:"Comptroller & Auditor General of India",source:"CARE-CAG",type:"empanelment",state:"Central",value:"Empanelment",start_date:"2026-01-07",end_date:"2026-06-03",score:85,ref:"CAG/EMPANEL/2026-27/PSU",notes:"Annual empanelment for PSU statutory audit. Apply online then courier hard copy to CAG."},
+  {title:"ICAI MEF 2025-26 — RBI & NABARD Bank Branch Panel",org:"ICAI / RBI / NABARD",source:"meficai.org",type:"empanelment",state:"Central",value:"Bank branch fees",start_date:"2025-09-01",end_date:"2026-05-08",score:90,ref:"ICAI/MEF/2025-26",notes:"Draft panel live at meficai.org. Final panel sent to RBI and NABARD."},
+  {title:"Income Tax Dept — Special Auditors Empanelment 2026-28",org:"Principal Chief Commissioner of Income Tax",source:"Income Tax Portal",type:"statutory audit",state:"Central",value:"Statutory fees",start_date:"2026-04-01",end_date:"2026-06-15",score:75,ref:"PCIT/SA/EMPANEL/2026-28",notes:"Empanelment as Special Auditor u/s 142(2A) IT Act for 2026-28."},
+  {title:"NBCC — Internal Auditor Empanelment 2026-29",org:"National Buildings Construction Corporation",source:"ICAI TMDI",type:"internal audit",state:"Central",value:"3-year empanelment",start_date:"2026-04-01",end_date:"2026-06-05",score:78,ref:"NBCC/INTERNAL/AUDIT/2026-29",notes:"EOI for CA firms for NBCC corporate and regional offices."},
+  {title:"General Insurance Corporation — Fund Auditor",org:"General Insurance Corporation of India",source:"ICAI TMDI",type:"statutory audit",state:"Central",value:"Annual appointment",start_date:"2026-04-01",end_date:"2026-05-31",score:70,ref:"GIC/PF/AUDIT/2026",notes:"Appointment for GIC Employees PF, Pension Fund and Gratuity Fund."},
+  {title:"District Health Society Ghaziabad — Concurrent Auditor",org:"District Health Society, Ghaziabad, UP",source:"ICAI PDC",type:"concurrent audit",state:"Uttar Pradesh",value:"Annual fees",start_date:"2026-04-01",end_date:"2026-05-20",score:88,ref:"DHS/GZB/CA/2025-27",notes:"UP-based CA firm required. NHM funds. Near Meerut."},
+  {title:"District Health Society Etawah — Concurrent Auditor",org:"District Health Society, Etawah, UP",source:"ICAI PDC",type:"concurrent audit",state:"Uttar Pradesh",value:"Annual fees",start_date:"2026-04-01",end_date:"2026-05-22",score:82,ref:"DHS/ETAWAH/CA/2025-27",notes:"UP-based CA firm. NHM health society funds."},
+  {title:"Cane Development Council Meerut — Internal Audit",org:"Cane Development Council, Meerut, UP",source:"ICAI PDC",type:"internal audit",state:"Uttar Pradesh",value:"Annual contract",start_date:"2026-04-20",end_date:"2026-05-25",score:95,ref:"CCDS/MEERUT/IA/2026",notes:"Local Meerut firm strongly preferred."},
+  {title:"State Health Society UP — Statutory Auditor NHM 2026",org:"State Health Society, Uttar Pradesh",source:"ICAI TMDI",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.4-8 lakh per district",start_date:"2026-04-01",end_date:"2026-06-12",score:85,ref:"SHS/UP/NHM/SA/2026",notes:"Statutory auditor for NHM, ECRP, PM-ABHIM funds. UP CA firm eligible."},
+  {title:"Statutory Audit — UP State Cooperative Federation",org:"UP State Cooperative Federation",source:"UP e-Procurement",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.8.5 lakh",start_date:"2026-04-15",end_date:"2026-05-25",score:88,ref:"UP/AUDIT/2026/48291",notes:"UP-based CA firm preferred. DSC required."},
+  {title:"Internal Audit — Meerut Development Authority",org:"Meerut Development Authority",source:"UP e-Procurement",type:"internal audit",state:"Uttar Pradesh",value:"Rs.3.2 lakh",start_date:"2026-04-15",end_date:"2026-06-02",score:92,ref:"MDA/AUDIT/2026/11",notes:"Local Meerut firm strongly preferred. 1-year assignment."},
+  {title:"Tax Audit — UPPCL (UP Power Corporation)",org:"UP Power Corporation Ltd",source:"CPP-GePM",type:"tax audit",state:"Uttar Pradesh",value:"Rs.12 lakh",start_date:"2026-04-01",end_date:"2026-06-10",score:78,ref:"CPP/2026/UP/49102",notes:"Min 10 years practice. CAG empanelment preferred."},
+  {title:"Statutory Audit — Ghaziabad Nagar Nigam",org:"Ghaziabad Municipal Corporation",source:"UP e-Procurement",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.5.8 lakh",start_date:"2026-04-01",end_date:"2026-06-15",score:82,ref:"GNN/AUDIT/2026/07",notes:"Urban local body audit. UP firm required."},
+  {title:"SBI — Statutory Audit, Meerut Zone 2026",org:"State Bank of India",source:"SBI Portal",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.4.5 lakh",start_date:"2026-04-01",end_date:"2026-05-22",score:90,ref:"SBI/AUDIT/MW/2026/19",notes:"Must be on SBI panel. RBI UCN required. Meerut zone."},
+  {title:"PNB — Concurrent Audit Empanelment 2026-27",org:"Punjab National Bank",source:"PNB Portal",type:"concurrent audit",state:"Central",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-05-30",score:88,ref:"PNB/CA/EMP/2026-27/03",notes:"RBI UCN and ICAI concurrent audit certificate needed."},
+  {title:"Central Bank — Concurrent Audit Empanelment 2026-27",org:"Central Bank of India",source:"Central Bank Portal",type:"concurrent audit",state:"Central",value:"Rs.12,000/branch/month",start_date:"2026-04-01",end_date:"2026-05-20",score:80,ref:"CBI/CA/CONCURRENT/2026-27",notes:"RBI UCN required. ICAI concurrent audit certificate mandatory."},
+  {title:"Bank of Baroda — Concurrent Audit, UP Zone",org:"Bank of Baroda",source:"BOB Portal",type:"concurrent audit",state:"Uttar Pradesh",value:"Rs.10,000-15,000/branch/month",start_date:"2026-04-01",end_date:"2026-05-28",score:82,ref:"BOB/CA/UP/2026-27/11",notes:"RBI UCN mandatory. UP zone includes Meerut area."},
+  {title:"Canara Bank — Concurrent Audit 704 Branches 2026-27",org:"Canara Bank",source:"Canara Bank Portal",type:"concurrent audit",state:"Central",value:"Rs.17,500-50,000/branch/month",start_date:"2026-04-01",end_date:"2026-06-01",score:78,ref:"CANARA/ECA/2026-27",notes:"704 branches. RBI UCN and FRN as login credentials."},
+  {title:"Union Bank — Concurrent Audit Empanelment 2026-27",org:"Union Bank of India",source:"Union Bank Portal",type:"concurrent audit",state:"Central",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-05-28",score:78,ref:"UBI/CA/CONCURRENT/2026-27",notes:"Covers UP, Delhi, Uttarakhand, Haryana, Rajasthan branches."},
+  {title:"Nainital Bank — Concurrent Audit UP / Uttarakhand",org:"Nainital Bank Ltd",source:"ICAI TMDI",type:"concurrent audit",state:"Uttar Pradesh",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-05-31",score:84,ref:"NAINITAL/CA/CONCURRENT/2026-27",notes:"Covers Uttarakhand, UP, Delhi, Haryana, Rajasthan. Meerut included."},
+  {title:"IDBI Bank — Concurrent Audit Empanelment 2026-27",org:"IDBI Bank",source:"ICAI TMDI",type:"concurrent audit",state:"Central",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-06-05",score:72,ref:"IDBI/CA/EMP/2026-27",notes:"Empanelment of CA firms and retired IDBI officers."},
+  {title:"EPFO — Internal Audit CA Firm, UP Region",org:"Employees Provident Fund Organisation",source:"EPFO Portal",type:"internal audit",state:"Central",value:"Rs.7-10 lakh",start_date:"2026-04-01",end_date:"2026-06-12",score:75,ref:"EPFO/AUDIT/UP/2026/04",notes:"EOI for CA firm empanelment — EPFO regional office."},
+  {title:"Delhi Jal Board — Internal Audit 2026-27",org:"Delhi Jal Board",source:"Delhi e-Procurement",type:"internal audit",state:"Delhi",value:"Rs.9 lakh",start_date:"2026-04-01",end_date:"2026-06-08",score:65,ref:"DJB/AUDIT/2026/15",notes:"NCR / Delhi firms preferred. Min 2 FCA partners."},
+  {title:"District Health Society Mirzapur — Concurrent Auditor",org:"District Health Society, Mirzapur, UP",source:"ICAI PDC",type:"concurrent audit",state:"Uttar Pradesh",value:"Annual fees",start_date:"2026-04-01",end_date:"2026-06-05",score:80,ref:"DHS/MZP/CA/2025-27",notes:"UP-based CA firm required. NHM fund concurrent audit."},
+  {title:"RSRTC — Internal Audit Empanelment (Rajasthan)",org:"Rajasthan State Road Transport Corporation",source:"ICAI TMDI",type:"internal audit",state:"Rajasthan",value:"Annual empanelment",start_date:"2026-04-01",end_date:"2026-06-10",score:60,ref:"RSRTC/IA/EMPANEL/2026",notes:"Verify latest deadline on TMDI portal."},
+  {title:"GEM Portal — Audit Services CA Firms (Ongoing)",org:"Various Central Ministries",source:"GEM Portal",type:"statutory audit",state:"Central",value:"Rs.5-25 lakh",start_date:"2026-05-01",end_date:"2026-06-30",score:70,ref:"GEM/AUDIT/CA/2026/ONGOING",notes:"Multiple ongoing audit bids. Search chartered accountant on GEM regularly."},
+  {title:"CATS Delhi — Pre-Audit & Internal Audit CA Firm",org:"Centralised Accident & Trauma Services, Delhi",source:"ICAI TMDI",type:"internal audit",state:"Delhi",value:"Annual contract",start_date:"2026-04-01",end_date:"2026-06-08",score:65,ref:"CATS/DELHI/IA/2026",notes:"Pre-audit and internal audit. Delhi/NCR firm preferred. CAG required."},
+  {title:"C&AG — Expression of Willingness, Autonomous Bodies 2026-27",org:"Comptroller & Auditor General of India",source:"CAG Portal",type:"statutory audit",state:"Central",value:"Fixed CAG rates",start_date:"2026-03-20",end_date:"2026-05-29",score:80,ref:"CAG/EOW/AUTONOMOUS/2026-27",notes:"Must be CAG empanelled. Apr 2026-Mar 2027 audit period."},
+  {title:"NICSI Delhi — Internal Auditor 2026-29",org:"National Informatics Centre Services Inc",source:"ICAI TMDI",type:"internal audit",state:"Central",value:"3-year contract",start_date:"2026-04-01",end_date:"2026-06-10",score:72,ref:"NICSI/IA/RFP/2026-29",notes:"RFP for CA firm as internal auditor. CAG empanelment preferred."},
 ];
 
 // ── INIT ─────────────────────────────────────────────────
 async function init() {
   showLoading(true);
-  buildPresetGrid();
-  // Use hardcoded keys first, fall back to saved keys, then show setup
-  const url = HARDCODED_KEY !== "PASTE_YOUR_ANON_KEY_HERE" ? HARDCODED_URL : null;
-  const key = HARDCODED_KEY !== "PASTE_YOUR_ANON_KEY_HERE" ? HARDCODED_KEY : null;
-  const creds = (url && key) ? {url, key} : getCreds();
-  if (!creds) { showSetup(); showLoading(false); return; }
   try {
-    sb = createClient(creds.url, creds.key);
+    sb = createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sb.auth.getSession();
     if (session) { currentUser = session.user; await loadProfile(); showApp(); }
     else showAuth();
-  } catch(e) { showSetup(); }
+  } catch(e) { showAuth(); }
   showLoading(false);
 }
 
-function getCreds() { try { const c=localStorage.getItem(CRED_KEY); return c?JSON.parse(c):null; } catch(e){return null;} }
-function showLoading(v) { document.getElementById('loading').classList.toggle('show',v); }
-function showAuth() { document.getElementById('auth-screen').style.display='flex'; document.getElementById('setup-screen').style.display='none'; document.getElementById('app-screen').style.display='none'; }
-function showSetup() { document.getElementById('auth-screen').style.display='none'; document.getElementById('setup-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
+function showLoading(v) { document.getElementById('loading').classList.toggle('show', v); }
+function showAuth() { document.getElementById('auth-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
 function showApp() {
   document.getElementById('auth-screen').style.display='none';
-  document.getElementById('setup-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
-  const name = currentProfile?.full_name || currentUser?.email || 'User';
-  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('user-name-display').textContent = currentProfile?.full_name || currentUser?.email || 'User';
   loadTenders();
 }
-
-// ── SETUP ────────────────────────────────────────────────
-async function connectSupabase() {
-  const url = document.getElementById('setup-url').value.trim();
-  const key = document.getElementById('setup-key').value.trim();
-  const st  = document.getElementById('connect-status');
-  if (!url||!key) { st.textContent='Please enter both URL and key.'; st.className='connect-status err'; return; }
-  try {
-    const client = createClient(url,key);
-    const { error } = await client.from('profiles').select('id').limit(1);
-    if (error && !['PGRST116','42P01'].includes(error.code)) throw error;
-    localStorage.setItem(CRED_KEY, JSON.stringify({url,key}));
-    st.textContent='Connected! Redirecting...'; st.className='connect-status ok';
-    sb = client; setTimeout(()=>showAuth(),1200);
-  } catch(e) { st.textContent='Failed: '+(e.message||'Check URL and key.'); st.className='connect-status err'; }
-}
-
-function copySQL() { navigator.clipboard.writeText(document.getElementById('sql-block').textContent).then(()=>notify('SQL copied!')); }
 
 // ── AUTH ─────────────────────────────────────────────────
 function switchAuthTab(t) {
@@ -545,117 +498,102 @@ async function doRegister() {
   btn.disabled=false; btn.textContent='Create Account';
   if(error){showAuthErr(error.message);return;}
   if(data.user){ await sb.from('profiles').update({full_name:name,firm_name:firm}).eq('id',data.user.id); currentUser=data.user; await loadProfile(); showApp(); }
-  else showAuthOk('Account created! Check email to confirm, then login.');
+  else showAuthOk('Check your email to confirm, then login.');
 }
 
 async function doLogout() { await sb.auth.signOut(); currentUser=null; currentProfile=null; tenders=[]; showAuth(); }
 async function loadProfile() { const {data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single(); currentProfile=data; }
 
 // ── TENDERS ──────────────────────────────────────────────
-// ── SEED TENDERS (29 real verified opportunities) ────────
-const SEED_TENDERS = [
-  {title:"C&AG Empanelment of CA Firms / LLPs — PSU Audit 2026-27",org:"Comptroller & Auditor General of India",source:"CARE-CAG (care.cag.gov.in)",type:"empanelment",state:"Central",value:"Empanelment (fixed CAG rates)",start_date:"2026-01-07",end_date:"2026-06-03",score:85,ref:"CAG/EMPANEL/2026-27/PSU",notes:"Annual empanelment for PSU statutory audit. Apply online then courier hard copy to CAG, New Delhi.",checklist:[{text:"ICAI Firm Registration Certificate",done:false},{text:"C&AG Empanelment Certificate",done:false},{text:"List of Partners with qualifications",done:false},{text:"Last 3 Years Balance Sheet",done:false},{text:"Covering Letter on Firm letterhead",done:false}]},
-  {title:"C&AG Expression of Willingness — Autonomous Bodies Audit 2026-27",org:"Comptroller & Auditor General of India",source:"CAG Portal (cag.gov.in)",type:"statutory audit",state:"Central",value:"Fixed CAG rates per assignment",start_date:"2026-03-20",end_date:"2026-05-29",score:80,ref:"CAG/EOW/AUTONOMOUS/2026-27",notes:"Expression of Willingness for audit of Autonomous Bodies Apr 2026-Mar 2027. Must be CAG empanelled.",checklist:[{text:"CAG Empanelment Certificate",done:false},{text:"Expression of Willingness Form",done:false},{text:"Partner CVs",done:false}]},
-  {title:"ICAI MEF 2025-26 — RBI & NABARD Bank Branch Auditor Panel",org:"ICAI / RBI / NABARD",source:"ICAI MEF Portal (meficai.org)",type:"empanelment",state:"Central",value:"Bank branch audit fees (RBI rates)",start_date:"2025-09-01",end_date:"2026-05-08",score:90,ref:"ICAI/MEF/2025-26",notes:"Draft panel live at meficai.org. Check your firm listing. Final panel sent to RBI and NABARD.",checklist:[{text:"MEF Online Form Submission",done:false},{text:"RBI Unique Code Number (UCN)",done:false},{text:"ICAI Firm Registration Certificate",done:false},{text:"ICAI Concurrent Audit Certificate",done:false}]},
-  {title:"Income Tax Dept — Special Auditors Empanelment 2026-28",org:"Principal Chief Commissioner of Income Tax",source:"Income Tax Portal",type:"statutory audit",state:"Central",value:"Special audit fees (statutory)",start_date:"2026-04-01",end_date:"2026-06-15",score:75,ref:"PCIT/SA/EMPANEL/2026-28",notes:"Empanelment as Special Auditor u/s 142(2A) IT Act for 2026-28. CA firm / proprietary concern eligible.",checklist:[{text:"ICAI Firm Registration Certificate",done:false},{text:"PAN Card of Firm",done:false},{text:"Experience certificates",done:false},{text:"Covering Letter",done:false}]},
-  {title:"NBCC — Internal Auditor Empanelment 2026-27 to 2028-29",org:"National Buildings Construction Corporation",source:"ICAI TMDI (tmdicai.org)",type:"internal audit",state:"Central",value:"3-year empanelment",start_date:"2026-04-01",end_date:"2026-06-05",score:78,ref:"NBCC/INTERNAL/AUDIT/2026-29",notes:"EOI for CA firms for NBCC corporate and regional offices. Verify latest date — corrigendum issued.",checklist:[{text:"Firm Profile / Brochure",done:false},{text:"ICAI Registration Certificate",done:false},{text:"Experience of PSU audits",done:false},{text:"List of Partners",done:false}]},
-  {title:"NICSI — Internal Audit CA Firm 2026-27 to 2028-29",org:"National Informatics Centre Services Inc, Delhi",source:"ICAI TMDI (tmdicai.org)",type:"internal audit",state:"Central",value:"3-year contract",start_date:"2026-04-01",end_date:"2026-06-10",score:72,ref:"NICSI/IA/RFP/2026-29",notes:"RFP for hiring CA firm as internal auditor for NICSI. Central govt entity. CAG empanelment preferred.",checklist:[{text:"Technical Bid Document",done:false},{text:"CAG Empanelment Certificate",done:false},{text:"PAN Card of Firm",done:false},{text:"GST Registration Certificate",done:false}]},
-  {title:"General Insurance Corporation — PF, Pension & Gratuity Fund Auditor",org:"General Insurance Corporation of India",source:"ICAI TMDI (tmdicai.org)",type:"statutory audit",state:"Central",value:"Annual appointment",start_date:"2026-04-01",end_date:"2026-05-31",score:70,ref:"GIC/PF/AUDIT/2026",notes:"Appointment of audit firm for GIC Employees PF, Pension Fund and Gratuity Fund.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"Experience in fund audits",done:false},{text:"Partner qualifications",done:false}]},
-  {title:"CATS Delhi — Pre-Audit cum Internal Audit CA Firm",org:"Centralised Accident & Trauma Services, Delhi",source:"ICAI TMDI (tmdicai.org)",type:"internal audit",state:"Delhi",value:"Annual contract",start_date:"2026-04-01",end_date:"2026-06-08",score:65,ref:"CATS/DELHI/IA/2026",notes:"Pre-audit and internal audit of CATS Delhi. Delhi/NCR firm preferred. CAG empanelment required.",checklist:[{text:"CAG Empanelment Certificate",done:false},{text:"ICAI Registration",done:false},{text:"Covering Letter",done:false}]},
-  {title:"District Health Society Ghaziabad — Concurrent Auditor 2025-27",org:"District Health Society, Ghaziabad, UP",source:"ICAI PDC (pdicai.org)",type:"concurrent audit",state:"Uttar Pradesh",value:"Annual audit fees",start_date:"2026-04-01",end_date:"2026-05-20",score:88,ref:"DHS/GZB/CA/2025-27",notes:"Concurrent auditor for NHM funds. UP-based CA firm required. Near Meerut.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"RBI UCN Certificate",done:false},{text:"Experience in concurrent audit",done:false},{text:"ICAI Concurrent Audit Certificate",done:false}]},
-  {title:"District Health Society Etawah — Concurrent Auditor 2025-27",org:"District Health Society, Etawah, UP",source:"ICAI PDC (pdicai.org)",type:"concurrent audit",state:"Uttar Pradesh",value:"Annual audit fees",start_date:"2026-04-01",end_date:"2026-05-22",score:82,ref:"DHS/ETAWAH/CA/2025-27",notes:"UP-based CA firm. Concurrent audit of NHM health society funds.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"RBI UCN Certificate",done:false},{text:"Concurrent Audit Certificate",done:false}]},
-  {title:"Cane Development Council Meerut — Internal Audit",org:"Co-op Cane Development Society & Council, Meerut, UP",source:"ICAI PDC (pdicai.org)",type:"internal audit",state:"Uttar Pradesh",value:"Annual contract",start_date:"2026-04-20",end_date:"2026-05-25",score:95,ref:"CCDS/MEERUT/IA/2026",notes:"Internal audit of Meerut cane development society. Local Meerut firm strongly preferred.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"PAN Card",done:false},{text:"GST Registration",done:false},{text:"Covering Letter",done:false},{text:"Partnership Deed",done:false}]},
-  {title:"State Health Society UP — Statutory Auditor NHM / PM-ABHIM 2026",org:"State Health Society, Uttar Pradesh",source:"ICAI TMDI (tmdicai.org)",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.4-8 lakh per district",start_date:"2026-04-01",end_date:"2026-06-12",score:85,ref:"SHS/UP/NHM/SA/2026",notes:"Statutory auditor for SHS and DHS for NHM, ECRP, PM-ABHIM funds. UP CA firm eligible.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"CAG Empanelment Certificate",done:false},{text:"PAN Card",done:false},{text:"GST Registration",done:false},{text:"Experience of govt audit",done:false}]},
-  {title:"Statutory Audit — UP State Cooperative Federation Ltd",org:"UP State Cooperative Federation",source:"UP e-Procurement (etender.up.nic.in)",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.8.5 lakh",start_date:"2026-04-15",end_date:"2026-05-25",score:88,ref:"UP/AUDIT/2026/48291",notes:"UP-based CA firm preferred. DSC required for portal submission.",checklist:[{text:"Digital Signature Certificate (DSC)",done:false},{text:"ICAI Registration Certificate",done:false},{text:"CAG Empanelment Certificate",done:false},{text:"PAN Card",done:false},{text:"Last 3 Years Balance Sheet",done:false}]},
-  {title:"Internal Audit — Meerut Development Authority 2025-26",org:"Meerut Development Authority",source:"UP e-Procurement",type:"internal audit",state:"Uttar Pradesh",value:"Rs.3.2 lakh",start_date:"2026-04-15",end_date:"2026-06-02",score:92,ref:"MDA/AUDIT/2026/11",notes:"Local Meerut firm strongly preferred. 1-year assignment.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"PAN Card",done:false},{text:"GST Registration",done:false},{text:"Covering Letter",done:false},{text:"Digital Signature Certificate (DSC)",done:false}]},
-  {title:"Tax Audit — UPPCL (UP Power Corporation Ltd)",org:"Uttar Pradesh Power Corporation Ltd",source:"CPP-GePM",type:"tax audit",state:"Uttar Pradesh",value:"Rs.12 lakh",start_date:"2026-04-01",end_date:"2026-06-10",score:78,ref:"CPP/2026/UP/49102",notes:"Min 10 years practice required. CAG empanelment preferred.",checklist:[{text:"CAG Empanelment Certificate",done:false},{text:"ICAI Registration",done:false},{text:"Tax audit experience proof",done:false},{text:"DSC",done:false}]},
-  {title:"Statutory Audit — Ghaziabad Nagar Nigam 2025-26",org:"Ghaziabad Municipal Corporation",source:"UP e-Procurement",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.5.8 lakh",start_date:"2026-04-01",end_date:"2026-06-15",score:82,ref:"GNN/AUDIT/2026/07",notes:"Urban local body audit. UP-based firm required.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"CAG Empanelment",done:false},{text:"DSC",done:false},{text:"PAN Card",done:false}]},
-  {title:"SBI — Statutory Audit, Meerut Zone 2026",org:"State Bank of India",source:"SBI Portal (bank.sbi)",type:"statutory audit",state:"Uttar Pradesh",value:"Rs.4.5 lakh",start_date:"2026-04-01",end_date:"2026-05-22",score:90,ref:"SBI/AUDIT/MW/2026/19",notes:"Must be on SBI panel. RBI UCN required. Meerut zone branches.",checklist:[{text:"RBI Unique Code Number (UCN)",done:false},{text:"ICAI Registration Certificate",done:false},{text:"SBI Empanelment Letter",done:false},{text:"Bank Account Details",done:false}]},
-  {title:"PNB — Concurrent Audit Empanelment 2026-27",org:"Punjab National Bank",source:"PNB Portal (pnbindia.in)",type:"concurrent audit",state:"Central",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-05-30",score:88,ref:"PNB/CA/EMP/2026-27/03",notes:"RBI UCN and ICAI concurrent audit certificate needed. Online application only.",checklist:[{text:"RBI Unique Code Number (UCN)",done:false},{text:"ICAI Concurrent Audit Certificate",done:false},{text:"ICAI Registration Certificate",done:false},{text:"PAN Card",done:false}]},
-  {title:"Central Bank of India — Concurrent Audit Empanelment 2026-27",org:"Central Bank of India",source:"Central Bank Portal",type:"concurrent audit",state:"Central",value:"Rs.12,000 per branch/month",start_date:"2026-04-01",end_date:"2026-05-20",score:80,ref:"CBI/CA/CONCURRENT/2026-27",notes:"RBI UCN required. ICAI concurrent audit certificate mandatory. Online only.",checklist:[{text:"RBI Unique Code Number (UCN)",done:false},{text:"ICAI Concurrent Audit Certificate",done:false},{text:"ICAI Registration",done:false},{text:"GST Registration",done:false}]},
-  {title:"Bank of Baroda — Concurrent Audit, UP Zone 2026-27",org:"Bank of Baroda",source:"Bank of Baroda Portal",type:"concurrent audit",state:"Uttar Pradesh",value:"Rs.10,000-15,000 per branch/month",start_date:"2026-04-01",end_date:"2026-05-28",score:82,ref:"BOB/CA/UP/2026-27/11",notes:"RBI UCN mandatory. UP zone includes Meerut area branches.",checklist:[{text:"RBI UCN Certificate",done:false},{text:"ICAI Concurrent Audit Certificate",done:false},{text:"ICAI Registration",done:false}]},
-  {title:"Canara Bank — Concurrent Audit Empanelment Jul 2026-Jun 2027",org:"Canara Bank",source:"Canara Bank Portal (csis.canarabank.bank.in)",type:"concurrent audit",state:"Central",value:"Rs.17,500-50,000 per branch/month",start_date:"2026-04-01",end_date:"2026-06-01",score:78,ref:"CANARA/ECA/2026-27",notes:"704 branches. RBI UCN and FRN as login credentials. Online application only.",checklist:[{text:"RBI UCN Certificate",done:false},{text:"FRN (Firm Registration Number)",done:false},{text:"ICAI Concurrent Audit Certificate",done:false}]},
-  {title:"Union Bank of India — Concurrent Audit Empanelment 2026-27",org:"Union Bank of India",source:"ICAI TMDI / Union Bank Portal",type:"concurrent audit",state:"Central",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-05-28",score:78,ref:"UBI/CA/CONCURRENT/2026-27",notes:"Covers UP, Delhi, Uttarakhand, Haryana, Rajasthan branches.",checklist:[{text:"RBI UCN Certificate",done:false},{text:"ICAI Concurrent Audit Certificate",done:false},{text:"ICAI Registration",done:false},{text:"GST Registration",done:false}]},
-  {title:"Nainital Bank — Concurrent Audit, UP / Uttarakhand 2026-27",org:"Nainital Bank Ltd",source:"ICAI TMDI (tmdicai.org)",type:"concurrent audit",state:"Uttar Pradesh",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-05-31",score:84,ref:"NAINITAL/CA/CONCURRENT/2026-27",notes:"Covers Uttarakhand, UP, Delhi, Haryana, Rajasthan. Meerut and nearby branches included.",checklist:[{text:"RBI UCN Certificate",done:false},{text:"ICAI Concurrent Audit Certificate",done:false},{text:"ICAI Registration",done:false}]},
-  {title:"IDBI Bank — Concurrent Audit Empanelment 2026-27",org:"IDBI Bank",source:"ICAI TMDI (tmdicai.org)",type:"concurrent audit",state:"Central",value:"Empanelment",start_date:"2026-04-01",end_date:"2026-06-05",score:72,ref:"IDBI/CA/EMP/2026-27",notes:"Empanelment of CA firms and retired IDBI Bank officers as concurrent auditors.",checklist:[{text:"RBI UCN Certificate",done:false},{text:"ICAI Concurrent Audit Certificate",done:false},{text:"ICAI Registration",done:false}]},
-  {title:"EPFO — Internal Audit CA Firm, UP Region 2026-27",org:"Employees Provident Fund Organisation",source:"EPFO Portal / ICAI PDC",type:"internal audit",state:"Central",value:"Rs.7-10 lakh",start_date:"2026-04-01",end_date:"2026-06-12",score:75,ref:"EPFO/AUDIT/UP/2026/04",notes:"EOI for CA firm empanelment — EPFO regional office. CAG empanelment strongly preferred.",checklist:[{text:"CAG Empanelment Certificate",done:false},{text:"ICAI Registration",done:false},{text:"PAN Card",done:false},{text:"Experience certificates",done:false}]},
-  {title:"ONGC — Audit of Measurement Systems",org:"Oil & Natural Gas Corporation Ltd",source:"ONGC Tenders (tenders.ongc.co.in)",type:"statutory audit",state:"Central",value:"As per tender",start_date:"2026-04-01",end_date:"2026-06-01",score:65,ref:"ONGC/AUDIT/MEAS/2026",notes:"Hiring of services for audit of measurement systems. CAG empanelled firm preferred.",checklist:[{text:"CAG Empanelment Certificate",done:false},{text:"ICAI Registration",done:false},{text:"Technical Bid",done:false}]},
-  {title:"Delhi Forest & Wildlife Dept — Internal Audit CA Firm",org:"Dept of Forests & Wildlife, Govt of NCT Delhi",source:"Delhi e-Procurement / ICAI PDC",type:"internal audit",state:"Delhi",value:"Annual contract",start_date:"2026-04-01",end_date:"2026-06-08",score:65,ref:"DFW/DELHI/IA/2026",notes:"Audit of Delhi-CAMPA and Ridge Management Board funds. C&AG empanelment required.",checklist:[{text:"CAG Empanelment Certificate",done:false},{text:"ICAI Registration",done:false},{text:"DSC",done:false},{text:"Covering Letter",done:false}]},
-  {title:"RSRTC — Internal Audit Empanelment (Rajasthan)",org:"Rajasthan State Road Transport Corporation",source:"ICAI TMDI (tmdicai.org)",type:"internal audit",state:"Central",value:"Annual empanelment",start_date:"2026-04-01",end_date:"2026-06-10",score:60,ref:"RSRTC/IA/EMPANEL/2026",notes:"Corrigendum issued extending deadline. Verify latest date on TMDI portal.",checklist:[{text:"ICAI Registration",done:false},{text:"Experience in transport sector audit",done:false},{text:"Covering Letter",done:false}]},
-  {title:"District Health Society Mirzapur — Concurrent Auditor 2025-27",org:"District Health Society, Mirzapur, UP",source:"ICAI PDC (pdicai.org)",type:"concurrent audit",state:"Uttar Pradesh",value:"Annual audit fees",start_date:"2026-04-01",end_date:"2026-06-05",score:80,ref:"DHS/MZP/CA/2025-27",notes:"UP-based CA firm required. NHM fund concurrent audit.",checklist:[{text:"ICAI Registration Certificate",done:false},{text:"RBI UCN Certificate",done:false},{text:"Concurrent Audit Certificate",done:false}]},
-];
-
-async function seedTendersIfEmpty(userId) {
-  const {data} = await sb.from('tenders').select('id').eq('user_id', userId).limit(1);
-  if (data && data.length > 0) return;
+async function seedIfEmpty(uid) {
+  const {data}=await sb.from('tenders').select('id').eq('user_id',uid).limit(1);
+  if(data&&data.length>0) return;
   notify('Loading 29 tenders automatically...');
-  const rows = SEED_TENDERS.map(t => ({...t, user_id: userId, filed: false}));
-  const {error} = await sb.from('tenders').insert(rows);
-  if (error) { notify('Seed error: ' + error.message); return; }
-  notify('29 tenders loaded successfully!');
-}
-
-// ── AUTO REFRESH (checks for updates daily) ───────────────
-const REFRESH_KEY = 'ca_last_refresh';
-async function autoRefreshCheck(userId) {
-  const last = localStorage.getItem(REFRESH_KEY);
-  const now  = new Date().toDateString();
-  if (last === now) return;
-  localStorage.setItem(REFRESH_KEY, now);
-  // Update deadlines on existing tenders that may have changed
-  // This runs silently in background
-  console.log('Daily refresh check completed:', now);
+  const rows=SEED_TENDERS.map(t=>({...t,user_id:uid,filed:false,archived:false}));
+  await sb.from('tenders').insert(rows);
+  notify('29 tenders loaded!');
 }
 
 async function loadTenders() {
   showLoading(true);
-  await seedTendersIfEmpty(currentUser.id);
-  await autoRefreshCheck(currentUser.id);
+  await seedIfEmpty(currentUser.id);
   const {data,error}=await sb.from('tenders').select('*').eq('user_id',currentUser.id).order('end_date',{ascending:true});
   showLoading(false);
   if(error){notify('Error: '+error.message);return;}
   tenders=data||[];
-  renderTenders();
+  renderAll();
 }
 
 function today(){return new Date().toISOString().split('T')[0];}
 function daysLeft(d){if(!d)return 999; return Math.ceil((new Date(d)-new Date(today()))/86400000);}
-function urgClass(t){if(t.filed)return 'filed-card'; const d=daysLeft(t.end_date); return d<=7?'urgent':d<=14?'warning':'safe';}
-function badgeClass(t){if(t.filed)return 'filed-b'; const d=daysLeft(t.end_date); return d<=0?'urgent':d<=7?'urgent':d<=14?'warning':'safe';}
-function badgeText(t){if(t.filed)return 'Filed'; const d=daysLeft(t.end_date); if(d<=0)return 'Overdue!'; if(d<=7)return d+'d left — Urgent!'; if(d<=14)return d+'d left'; return d+' days left';}
+
+function urgClass(t){
+  if(t.archived)return 'archived';
+  const d=daysLeft(t.end_date);
+  return d<=7?'urgent':d<=14?'warning':'safe';
+}
+function badgeClass(t){
+  if(t.archived)return 'arch';
+  const d=daysLeft(t.end_date);
+  return d<=0?'urgent':d<=7?'urgent':d<=14?'warning':'safe';
+}
+function badgeText(t){
+  if(t.archived)return 'Archived';
+  const d=daysLeft(t.end_date);
+  if(d<=0)return 'Overdue!'; if(d<=7)return d+'d — Urgent!'; if(d<=14)return d+'d left'; return d+' days left';
+}
 function fmtDate(d){if(!d)return '—'; return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
 
-function getChecklist(t){
-  try{ const c=t.checklist; return Array.isArray(c)?c:(typeof c==='string'?JSON.parse(c):[]);}catch(e){return [];}
+function extractValue(val){
+  if(!val)return 0;
+  const m=val.match(/[\d.]+/);
+  return m?parseFloat(m[0]):0;
 }
 
-function checklistProgress(t){
-  const cl=getChecklist(t);
-  if(!cl.length)return {done:0,total:0,pct:0};
-  const done=cl.filter(c=>c.done).length;
-  return {done,total:cl.length,pct:Math.round(done/cl.length*100)};
+function renderAll(){
+  renderStats();
+  renderTenders();
+  renderAnalytics();
+  renderStates();
+  renderArchive();
+  updateUrgentBadge();
+  updateArchiveBadge();
+}
+
+function updateUrgentBadge(){
+  const cnt=tenders.filter(t=>!t.archived&&!t.filed&&daysLeft(t.end_date)<=7).length;
+  const el=document.getElementById('urgent-badge');
+  el.textContent=cnt; el.style.display=cnt?'inline':'none';
+}
+
+function updateArchiveBadge(){
+  const cnt=tenders.filter(t=>t.archived).length;
+  document.getElementById('archive-badge').textContent=cnt?`(${cnt})`:'';
 }
 
 function renderStats(){
-  const open=tenders.filter(t=>!t.filed);
-  const filed=tenders.filter(t=>t.filed).length;
-  const urgent=open.filter(t=>daysLeft(t.end_date)<=7).length;
-  const upcoming=open.filter(t=>{const d=daysLeft(t.end_date);return d>7&&d<=14;}).length;
-  const allPcts=tenders.map(t=>checklistProgress(t).pct);
-  const avgPct=allPcts.length?Math.round(allPcts.reduce((a,b)=>a+b,0)/allPcts.length):0;
-  document.getElementById('st-total').textContent=tenders.length;
+  const open=tenders.filter(t=>!t.archived);
+  const filed=open.filter(t=>t.filed).length;
+  const urgent=open.filter(t=>!t.filed&&daysLeft(t.end_date)<=7).length;
+  const upcoming=open.filter(t=>!t.filed&&daysLeft(t.end_date)>7&&daysLeft(t.end_date)<=14).length;
+  const totalVal=open.filter(t=>!t.filed).reduce((s,t)=>s+extractValue(t.value),0);
+  document.getElementById('st-total').textContent=open.filter(t=>!t.filed).length;
   document.getElementById('st-filed').textContent=filed;
-  document.getElementById('st-open').textContent=open.length;
   document.getElementById('st-urgent').textContent=urgent;
   document.getElementById('st-upcoming').textContent=upcoming;
-  document.getElementById('st-docs').textContent=avgPct+'%';
+  document.getElementById('st-value').textContent=totalVal?'Rs.'+totalVal.toFixed(0)+'L':'—';
 }
 
 function getFiltered(){
   const q=(document.getElementById('search-box')?.value||'').toLowerCase();
   return tenders.filter(t=>{
-    const mf=currentFilter==='all'?true:currentFilter==='open'?!t.filed:currentFilter==='filed'?t.filed:currentFilter==='urgent'?(!t.filed&&daysLeft(t.end_date)<=7):t.type===currentFilter;
-    const ms=!q||(t.title||'').toLowerCase().includes(q)||(t.org||'').toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q)||(t.state||'').toLowerCase().includes(q);
+    if(t.archived)return false;
+    const mf=currentFilter==='all'?true
+      :currentFilter==='open'?!t.filed
+      :currentFilter==='filed'?t.filed
+      :currentFilter==='urgent'?(!t.filed&&daysLeft(t.end_date)<=7)
+      :t.type===currentFilter;
+    const ms=!q||(t.title||'').toLowerCase().includes(q)||(t.org||'').toLowerCase().includes(q)||(t.state||'').toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q);
     return mf&&ms;
   }).sort((a,b)=>{
     if(a.filed!==b.filed)return a.filed?1:-1;
@@ -664,110 +602,90 @@ function getFiltered(){
 }
 
 function renderTenders(){
-  renderStats();
   const grid=document.getElementById('tender-grid');
   const list=getFiltered();
   if(!list.length){
     grid.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No tenders found</div><div style="font-size:13px;color:var(--text3)">Add a new tender or change the filter.</div></div>';
     return;
   }
-  grid.innerHTML=list.map(t=>{
-    const d=daysLeft(t.end_date);
-    const dc=t.filed?'':d<=7?'red':d<=14?'amber':'';
-    const sc=(t.score||0)>=80?'#2D7A4F':(t.score||0)>=60?'#B45309':'#6B6459';
-    const prog=checklistProgress(t);
-    const cl=getChecklist(t);
-    const showAI=openAIPanels[t.id];
+  grid.innerHTML=list.map(t=>tenderCardHTML(t)).join('');
+  Object.keys(openAIPanels).forEach(id=>{if(openAIPanels[id]==='pending')generateAI(id);});
+}
 
-    return `
-    <div class="tender-card ${urgClass(t)}" id="card-${t.id}">
-      <div class="card-inner">
-        <div class="card-left">
-          <div class="card-top">
-            <div class="tender-title">${t.title}</div>
-            <span class="badge ${badgeClass(t)}">${badgeText(t)}</span>
-            <span class="badge ${t.type==='empanelment'?'empanel':'type-b'}">${t.type||'audit'}</span>
-          </div>
-          <div class="card-meta">
-            ${t.org?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>${t.org}</span>`:''}
-            ${t.state?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>${t.state}</span>`:''}
-            ${t.source?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>${t.source}</span>`:''}
-            ${t.value?`<span class="meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>${t.value}</span>`:''}
-          </div>
-          ${t.notes?`<div class="card-notes">${t.notes}</div>`:''}
+function tenderCardHTML(t){
+  const d=daysLeft(t.end_date);
+  const dc=t.filed||t.archived?'':d<=7?'red':d<=14?'amber':'';
+  const sc=(t.score||0)>=80?'#2D7A4F':(t.score||0)>=60?'#B45309':'#6B6459';
+  const showAI=openAIPanels[t.id];
+  return `
+  <div class="tender-card ${urgClass(t)}" id="card-${t.id}">
+    <div class="card-inner">
+      <div class="card-left">
+        <div class="card-top">
+          <div class="tender-title" style="${t.filed?'text-decoration:line-through;color:var(--text3)':''}">${t.title}</div>
+          <span class="badge ${badgeClass(t)}">${badgeText(t)}</span>
+          <span class="badge ${t.type==='empanelment'?'empanel':'type-b'}">${t.type||'audit'}</span>
         </div>
-        <div class="card-right">
-          ${t.score?`<div><div class="match-score" style="color:${sc}">${t.score}%</div><div class="match-label">match</div></div>`:''}
-          <div class="card-actions">
-            <button class="action-btn edit-btn" onclick="editTender('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
-            ${!t.filed
-              ?`<button class="action-btn file-btn" onclick="markFiled('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Filed</button>`
-              :`<button class="action-btn" onclick="markUnfiled('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Reopen</button>`
-            }
-            <button class="action-btn ai-btn" onclick="toggleAISummary('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>AI Summary</button>
-            <button class="action-btn pdf-btn" onclick="exportPDF('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>PDF</button>
-            <button class="action-btn delete-btn" onclick="deleteTender('${t.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
-          </div>
+        <div class="card-meta">
+          ${t.org?`<span class="meta-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>${t.org}</span>`:''}
+          ${t.state?`<span class="meta-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/></svg>${t.state}</span>`:''}
+          ${t.source?`<span class="meta-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>${t.source}</span>`:''}
+          ${t.value?`<span class="meta-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>${t.value}</span>`:''}
         </div>
+        ${t.notes?`<div class="card-notes">${t.notes}</div>`:''}
       </div>
-
-      <!-- CHECKLIST -->
-      <div class="checklist-bar">
-        <div class="checklist-header">
-          <span class="checklist-title">Document Checklist</span>
-          <span class="checklist-progress">${prog.done}/${prog.total} ready</span>
-        </div>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${prog.pct}%"></div></div>
-        <div class="checklist-items" id="cl-${t.id}">
-          ${cl.map((c,i)=>`
-            <div class="check-item ${c.done?'done':''}" id="ci-${t.id}-${i}">
-              <input type="checkbox" ${c.done?'checked':''} onchange="toggleCheck('${t.id}',${i},this.checked)">
-              <span>${c.text}</span>
-              <button onclick="removeCheck('${t.id}',${i})" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:0 2px" title="Remove">&times;</button>
-            </div>
-          `).join('')}
-        </div>
-        <div class="add-check-row">
-          <input class="add-check-input" id="new-doc-${t.id}" placeholder="Add document..." onkeydown="if(event.key==='Enter')addCheckItem('${t.id}')">
-          <button class="add-check-btn" onclick="addCheckItem('${t.id}')">Add</button>
-        </div>
-      </div>
-
-      <!-- CARD DATES -->
-      <div class="card-dates">
-        ${t.start_date?`<span class="date-label">Start</span><span class="date-val" style="margin-right:12px">${fmtDate(t.start_date)}</span>`:''}
-        <span class="date-label">Deadline</span>
-        <span class="date-val ${dc}">${fmtDate(t.end_date)}</span>
-        <div class="days-left" style="color:${t.filed?'var(--text3)':d<=7?'var(--red)':d<=14?'var(--amber)':'var(--green)'}">
-          ${t.filed
-            ?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Filed`
-            :d<=0?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Overdue!`
-            :d<=7?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>${d} day${d===1?'':'s'} left — Act now!`
-            :`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${d} days left`
+      <div class="card-right">
+        ${t.score?`<div><div class="match-score" style="color:${sc}">${t.score}%</div><div class="match-label">match</div></div>`:''}
+        <div class="card-actions">
+          <button class="action-btn edit-btn" onclick="editTender('${t.id}')">✏ Edit</button>
+          ${!t.filed
+            ?`<button class="action-btn file-btn" onclick="markFiled('${t.id}')">✓ Filed</button>`
+            :`<button class="action-btn" onclick="markUnfiled('${t.id}')">↩ Reopen</button>`
           }
+          <button class="action-btn ai-btn" onclick="toggleAI('${t.id}')">★ AI Summary</button>
+          <button class="action-btn pdf-btn" onclick="exportPDF('${t.id}')">↓ PDF</button>
+          <button class="action-btn" onclick="archiveTender('${t.id}')" style="color:var(--text3)">Archive</button>
+          <button class="action-btn delete-btn" onclick="deleteTender('${t.id}')">🗑</button>
         </div>
-        ${t.ref?`<div style="margin-left:8px;font-size:11px;color:var(--text3)">Ref: ${t.ref}</div>`:''}
       </div>
+    </div>
+    <div class="card-dates">
+      ${t.start_date?`<span class="date-label">Start</span><span class="date-val" style="margin-right:12px">${fmtDate(t.start_date)}</span>`:''}
+      <span class="date-label">Deadline</span>
+      <span class="date-val ${dc}">${fmtDate(t.end_date)}</span>
+      <div class="days-left" style="color:${t.filed?'var(--text3)':d<=7?'var(--red)':d<=14?'var(--amber)':'var(--green)'}">
+        ${t.filed?'✓ Filed'
+          :d<=0?'⚠ Overdue!'
+          :d<=7?`⚠ ${d} day${d===1?'':'s'} left — Act now!`
+          :`⏱ ${d} days left`}
+      </div>
+      ${t.ref?`<div style="margin-left:8px;font-size:11px;color:var(--text3)">Ref: ${t.ref}</div>`:''}
+    </div>
+    ${showAI?`
+    <div class="ai-panel" id="ai-panel-${t.id}">
+      <div class="ai-panel-header">
+        ★ AI Summary
+        <button onclick="toggleAI('${t.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--amber);font-size:16px">✕</button>
+      </div>
+      <div class="ai-content" id="ai-content-${t.id}">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--amber)"><div class="dot-bounce"><span></span><span></span><span></span></div> Generating...</div>
+      </div>
+    </div>`:''}
+  </div>`;
+}
 
-      <!-- AI PANEL -->
-      ${showAI?`
-      <div class="ai-panel" id="ai-panel-${t.id}">
-        <div class="ai-panel-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          AI Summary
-          <button onclick="toggleAISummary('${t.id}')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--amber);font-size:16px">&#x2715;</button>
-        </div>
-        <div class="ai-content" id="ai-content-${t.id}">
-          <div class="ai-loading"><div class="dot-bounce"><span></span><span></span><span></span></div> Generating summary...</div>
-        </div>
-      </div>`:''}
-    </div>`;
-  }).join('');
-
-  // trigger AI generation for open panels
-  Object.keys(openAIPanels).forEach(id=>{
-    if(openAIPanels[id]==='pending') generateAI(id);
+// ── TABS ─────────────────────────────────────────────────
+function switchTab(name, el){
+  currentTab=name;
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['tenders','analytics','states','archive'].forEach(p=>{
+    document.getElementById('panel-'+p).style.display=p===name?'block':'none';
   });
+  document.getElementById('stats-bar').style.display=name==='tenders'?'flex':'none';
+  if(name==='analytics')renderAnalytics();
+  if(name==='states')renderStates();
+  if(name==='archive')renderArchive();
 }
 
 function setFilter(f,el){
@@ -777,77 +695,172 @@ function setFilter(f,el){
   renderTenders();
 }
 
-// ── CHECKLIST ────────────────────────────────────────────
-async function toggleCheck(tid,idx,val){
-  const t=tenders.find(x=>x.id===tid); if(!t)return;
-  const cl=getChecklist(t);
-  cl[idx].done=val;
-  t.checklist=cl;
-  await sb.from('tenders').update({checklist:cl}).eq('id',tid);
-  renderTenders();
+// ── ANALYTICS ────────────────────────────────────────────
+function renderAnalytics(){
+  const open=tenders.filter(t=>!t.archived);
+  const filed=open.filter(t=>t.filed).length;
+  const urgent=open.filter(t=>!t.filed&&daysLeft(t.end_date)<=7).length;
+  const totalVal=open.filter(t=>!t.filed).reduce((s,t)=>s+extractValue(t.value),0);
+  const avgScore=open.length?Math.round(open.reduce((s,t)=>s+(t.score||0),0)/open.length):0;
+
+  document.getElementById('analytics-grid').innerHTML=`
+    <div class="ana-card"><div class="ana-big">${open.filter(t=>!t.filed).length}</div><div class="ana-sub">Open tenders</div></div>
+    <div class="ana-card"><div class="ana-big" style="color:var(--red)">${urgent}</div><div class="ana-sub">Closing in 7 days</div></div>
+    <div class="ana-card"><div class="ana-big" style="color:var(--green)">${filed}</div><div class="ana-sub">Filed / applied</div></div>
+    <div class="ana-card"><div class="ana-big" style="color:var(--amber)">${totalVal?'Rs.'+totalVal.toFixed(0)+'L':'—'}</div><div class="ana-sub">Estimated total value</div></div>
+    <div class="ana-card"><div class="ana-big">${avgScore}%</div><div class="ana-sub">Avg match score</div></div>
+    <div class="ana-card"><div class="ana-big" style="color:var(--purple)">${tenders.filter(t=>t.archived).length}</div><div class="ana-sub">Archived</div></div>
+  `;
+
+  // By type
+  const types={};
+  open.forEach(t=>{const k=t.type||'other'; types[k]=(types[k]||0)+1;});
+  const maxT=Math.max(...Object.values(types),1);
+  document.getElementById('ana-by-type').innerHTML=Object.entries(types).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+    <div class="progress-row">
+      <span class="label" style="text-transform:capitalize">${k}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${v/maxT*100}%"></div></div>
+      <span class="count">${v}</span>
+    </div>`).join('');
+
+  // By deadline
+  const deadlines={
+    'Overdue':open.filter(t=>!t.filed&&daysLeft(t.end_date)<=0).length,
+    'This week':open.filter(t=>!t.filed&&daysLeft(t.end_date)>0&&daysLeft(t.end_date)<=7).length,
+    'This month':open.filter(t=>!t.filed&&daysLeft(t.end_date)>7&&daysLeft(t.end_date)<=30).length,
+    'Later':open.filter(t=>!t.filed&&daysLeft(t.end_date)>30).length,
+    'Filed':filed,
+  };
+  const maxD=Math.max(...Object.values(deadlines),1);
+  const dlColors={'Overdue':'var(--red)','This week':'var(--amber)','This month':'var(--accent)','Later':'var(--green)','Filed':'#9CA3AF'};
+  document.getElementById('ana-by-deadline').innerHTML=Object.entries(deadlines).map(([k,v])=>`
+    <div class="progress-row">
+      <span class="label">${k}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${v/maxD*100}%;background:${dlColors[k]}"></div></div>
+      <span class="count">${v}</span>
+    </div>`).join('');
+
+  // By score
+  const scores={'90-100%':0,'70-89%':0,'50-69%':0,'Below 50%':0};
+  open.forEach(t=>{
+    const s=t.score||0;
+    if(s>=90)scores['90-100%']++;
+    else if(s>=70)scores['70-89%']++;
+    else if(s>=50)scores['50-69%']++;
+    else scores['Below 50%']++;
+  });
+  const maxS=Math.max(...Object.values(scores),1);
+  document.getElementById('ana-by-score').innerHTML=Object.entries(scores).map(([k,v])=>`
+    <div class="progress-row">
+      <span class="label">${k}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${v/maxS*100}%"></div></div>
+      <span class="count">${v}</span>
+    </div>`).join('');
+
+  // Filing rate
+  const total=open.length||1;
+  const rate=Math.round(filed/total*100);
+  document.getElementById('ana-filing').innerHTML=`
+    <div class="ana-big" style="color:var(--green)">${rate}%</div>
+    <div class="ana-sub">Filing rate (${filed} of ${total} tenders applied)</div>
+    <div style="margin-top:12px;height:8px;background:var(--border);border-radius:4px">
+      <div style="height:8px;width:${rate}%;background:var(--green);border-radius:4px"></div>
+    </div>`;
 }
 
-async function removeCheck(tid,idx){
-  const t=tenders.find(x=>x.id===tid); if(!t)return;
-  const cl=getChecklist(t);
-  cl.splice(idx,1);
-  t.checklist=cl;
-  await sb.from('tenders').update({checklist:cl}).eq('id',tid);
-  renderTenders();
+// ── STATE TABLE ───────────────────────────────────────────
+function renderStates(){
+  const open=tenders.filter(t=>!t.archived);
+  const stateMap={};
+  open.forEach(t=>{
+    const s=t.state||'Unknown';
+    if(!stateMap[s])stateMap[s]={total:0,open:0,urgent:0,filed:0,value:0,types:new Set()};
+    stateMap[s].total++;
+    if(!t.filed)stateMap[s].open++;
+    if(!t.filed&&daysLeft(t.end_date)<=7)stateMap[s].urgent++;
+    if(t.filed)stateMap[s].filed++;
+    stateMap[s].value+=extractValue(t.value);
+    if(t.type)stateMap[s].types.add(t.type);
+  });
+
+  const stateColors={'Uttar Pradesh':'#E1F5EE','Central':'#E6F1FB','Delhi':'#EDE9FE','Maharashtra':'#FEF3C7','Rajasthan':'#FEE2E2','Gujarat':'#EAF3DE','Punjab':'#E0F2FE','Haryana':'#FDF4FF','Bihar':'#FFF7ED','Uttarakhand':'#F0FDF4','Madhya Pradesh':'#FFF1F2'};
+
+  const rows=Object.entries(stateMap).sort((a,b)=>b[1].total-a[1].total).map(([state,d])=>`
+    <tr>
+      <td><span class="state-pill" style="background:${stateColors[state]||'#F1EFE8'};color:var(--text)">${state}</span></td>
+      <td style="font-weight:600">${d.total}</td>
+      <td>${d.open}</td>
+      <td style="color:${d.urgent?'var(--red)':'var(--text3)'};font-weight:${d.urgent?600:400}">${d.urgent||'—'}</td>
+      <td style="color:var(--green)">${d.filed||'—'}</td>
+      <td style="color:var(--accent)">${d.value?'Rs.'+d.value.toFixed(0)+'L':'—'}</td>
+      <td style="font-size:11px;color:var(--text3)">${[...d.types].join(', ')}</td>
+    </tr>`).join('');
+
+  document.getElementById('state-tbody').innerHTML=rows||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No data</td></tr>';
 }
 
-async function addCheckItem(tid){
-  const inp=document.getElementById('new-doc-'+tid);
-  if(!inp||!inp.value.trim())return;
-  const t=tenders.find(x=>x.id===tid); if(!t)return;
-  const cl=getChecklist(t);
-  cl.push({text:inp.value.trim(),done:false});
-  t.checklist=cl;
-  await sb.from('tenders').update({checklist:cl}).eq('id',tid);
-  inp.value='';
-  renderTenders();
-}
-
-// ── MODAL ────────────────────────────────────────────────
-function buildPresetGrid(){
-  const grid=document.getElementById('preset-grid');
-  if(!grid)return;
-  grid.innerHTML=PRESET_DOCS.map((d,i)=>`<button class="check-preset-btn" onclick="addPresetDoc(${i})">${d}</button>`).join('');
-}
-
-function addPresetDoc(i){
-  const text=PRESET_DOCS[i];
-  if(!modalChecklist.find(c=>c.text===text)){
-    modalChecklist.push({text,done:false});
-    renderModalChecklist();
+// ── ARCHIVE ───────────────────────────────────────────────
+function renderArchive(){
+  const q=(document.getElementById('archive-search')?.value||'').toLowerCase();
+  const archived=tenders.filter(t=>t.archived&&(!q||(t.title||'').toLowerCase().includes(q)||(t.org||'').toLowerCase().includes(q)));
+  const grid=document.getElementById('archive-grid');
+  if(!archived.length){
+    grid.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No archived tenders</div><div style="font-size:13px;color:var(--text3)">Archived tenders appear here. Use Archive button on any tender.</div></div>';
+    return;
   }
-  notify('Added: '+text);
-}
-
-function addCustomDoc(){
-  const inp=document.getElementById('custom-doc-input');
-  if(!inp||!inp.value.trim())return;
-  modalChecklist.push({text:inp.value.trim(),done:false});
-  inp.value='';
-  renderModalChecklist();
-}
-
-function renderModalChecklist(){
-  const el=document.getElementById('modal-checklist-items');
-  if(!el)return;
-  el.innerHTML=modalChecklist.map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border)">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span style="flex:1">${c.text}</span>
-      <button onclick="removeModalDoc(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px">&times;</button>
+  grid.innerHTML=archived.map(t=>`
+    <div class="tender-card archived">
+      <div class="card-inner">
+        <div class="card-left">
+          <div class="card-top">
+            <div class="tender-title" style="color:var(--text3)">${t.title}</div>
+            <span class="badge arch">Archived</span>
+            <span class="badge type-b">${t.type||'audit'}</span>
+          </div>
+          <div class="card-meta">
+            ${t.org?`<span class="meta-item">${t.org}</span>`:''}
+            ${t.state?`<span class="meta-item">${t.state}</span>`:''}
+            ${t.value?`<span class="meta-item">${t.value}</span>`:''}
+          </div>
+        </div>
+        <div class="card-right">
+          <div class="card-actions">
+            <button class="action-btn" onclick="restoreTender('${t.id}')">↩ Restore</button>
+            <button class="action-btn delete-btn" onclick="deleteTender('${t.id}')">🗑</button>
+          </div>
+        </div>
+      </div>
+      <div class="card-dates">
+        <span class="date-label">Deadline</span>
+        <span class="date-val">${fmtDate(t.end_date)}</span>
+        ${t.ref?`<div style="margin-left:auto;font-size:11px;color:var(--text3)">Ref: ${t.ref}</div>`:''}
+      </div>
     </div>`).join('');
 }
 
-function removeModalDoc(i){ modalChecklist.splice(i,1); renderModalChecklist(); }
+async function archiveTender(id){
+  await sb.from('tenders').update({archived:true}).eq('id',id);
+  notify('Moved to archive.');
+  await loadTenders();
+}
 
+async function restoreTender(id){
+  await sb.from('tenders').update({archived:false}).eq('id',id);
+  notify('Restored to tenders.');
+  await loadTenders();
+}
+
+async function clearArchive(){
+  if(!confirm('Delete all archived tenders permanently?'))return;
+  const ids=tenders.filter(t=>t.archived).map(t=>t.id);
+  for(const id of ids) await sb.from('tenders').delete().eq('id',id);
+  notify('Archive cleared.');
+  await loadTenders();
+}
+
+// ── MODAL ─────────────────────────────────────────────────
 function openModal(id){
   editingId=id||null;
-  modalChecklist=[];
   document.getElementById('modal-title').textContent=id?'Edit Tender':'Add New Tender';
   if(id){
     const t=tenders.find(x=>x.id===id);
@@ -863,7 +876,6 @@ function openModal(id){
       document.getElementById('f-end').value=t.end_date||'';
       document.getElementById('f-ref').value=t.ref||'';
       document.getElementById('f-notes').value=t.notes||'';
-      modalChecklist=JSON.parse(JSON.stringify(getChecklist(t)));
     }
   } else {
     ['f-title','f-org','f-source','f-value','f-ref','f-notes'].forEach(id=>document.getElementById(id).value='');
@@ -873,37 +885,24 @@ function openModal(id){
     document.getElementById('f-start').value=today();
     document.getElementById('f-end').value='';
   }
-  renderModalChecklist();
   document.getElementById('modal-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-title').focus(),100);
 }
 
-function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); editingId=null; }
-function closeModalOutside(e){ if(e.target===document.getElementById('modal-overlay'))closeModal(); }
-function editTender(id){ openModal(id); }
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;}
+function closeModalOutside(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+function editTender(id){openModal(id);}
 
 async function saveTender(){
   const title=document.getElementById('f-title').value.trim();
   const org=document.getElementById('f-org').value.trim();
   const end=document.getElementById('f-end').value;
   if(!title||!org||!end){notify('Please fill Title, Organisation and Deadline.');return;}
-  const data={
-    title,org,
-    source:document.getElementById('f-source').value.trim(),
-    type:document.getElementById('f-type').value,
-    state:document.getElementById('f-state').value,
-    value:document.getElementById('f-value').value.trim(),
-    score:parseInt(document.getElementById('f-score').value)||null,
-    start_date:document.getElementById('f-start').value||null,
-    end_date:end,
-    ref:document.getElementById('f-ref').value.trim(),
-    notes:document.getElementById('f-notes').value.trim(),
-    checklist:modalChecklist,
-  };
+  const data={title,org,source:document.getElementById('f-source').value.trim(),type:document.getElementById('f-type').value,state:document.getElementById('f-state').value,value:document.getElementById('f-value').value.trim(),score:parseInt(document.getElementById('f-score').value)||null,start_date:document.getElementById('f-start').value||null,end_date:end,ref:document.getElementById('f-ref').value.trim(),notes:document.getElementById('f-notes').value.trim()};
   showLoading(true);
   let error;
-  if(editingId){ ({error}=await sb.from('tenders').update(data).eq('id',editingId)); }
-  else { data.user_id=currentUser.id; data.filed=false; ({error}=await sb.from('tenders').insert(data)); }
+  if(editingId){({error}=await sb.from('tenders').update(data).eq('id',editingId));}
+  else{data.user_id=currentUser.id;data.filed=false;data.archived=false;({error}=await sb.from('tenders').insert(data));}
   showLoading(false);
   if(error){notify('Error: '+error.message);return;}
   notify(editingId?'Updated!':'Tender added!');
@@ -911,26 +910,27 @@ async function saveTender(){
   await loadTenders();
 }
 
-async function markFiled(id){ await sb.from('tenders').update({filed:true}).eq('id',id); notify('Marked as filed!'); await loadTenders(); }
-async function markUnfiled(id){ await sb.from('tenders').update({filed:false}).eq('id',id); notify('Reopened.'); await loadTenders(); }
-async function deleteTender(id){ if(!confirm('Delete this tender?'))return; await sb.from('tenders').delete().eq('id',id); notify('Deleted.'); await loadTenders(); }
+async function markFiled(id){await sb.from('tenders').update({filed:true}).eq('id',id);notify('Marked as filed!');await loadTenders();}
+async function markUnfiled(id){await sb.from('tenders').update({filed:false}).eq('id',id);notify('Reopened.');await loadTenders();}
+async function deleteTender(id){if(!confirm('Delete this tender permanently?'))return;await sb.from('tenders').delete().eq('id',id);notify('Deleted.');await loadTenders();}
 
 // ── AI SUMMARY ───────────────────────────────────────────
-function toggleAISummary(id){
-  if(openAIPanels[id]){ delete openAIPanels[id]; }
-  else { openAIPanels[id]='pending'; }
+function toggleAI(id){
+  if(openAIPanels[id]){delete openAIPanels[id];}
+  else{openAIPanels[id]='pending';}
   renderTenders();
 }
 
 async function generateAI(id){
   openAIPanels[id]='done';
-  const t=tenders.find(x=>x.id===id); if(!t)return;
-  const el=document.getElementById('ai-content-'+id); if(!el)return;
-  const cl=getChecklist(t);
-  const prog=checklistProgress(t);
+  const t=tenders.find(x=>x.id===id);if(!t)return;
+  const el=document.getElementById('ai-content-'+id);if(!el)return;
   const d=daysLeft(t.end_date);
-  const prompt=`You are an assistant for a CA firm in India. Provide a professional summary for this tender opportunity:
-
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:`Provide a professional summary for this CA tender in India:
 Title: ${t.title}
 Organisation: ${t.org}
 Type: ${t.type}
@@ -938,61 +938,46 @@ State: ${t.state}
 Value: ${t.value||'Not specified'}
 Deadline: ${t.end_date} (${d} days left)
 Source: ${t.source||'Not specified'}
-Reference: ${t.ref||'Not specified'}
 Notes: ${t.notes||'None'}
-Documents ready: ${prog.done} of ${prog.total}
-Filed: ${t.filed?'Yes':'No'}
-
-Write a concise 4-5 sentence summary covering:
-1. What this opportunity is about
-2. Key eligibility or deadline concern
-3. Document preparation status
-4. One specific action to take today
-
-Be practical and professional. Indian CA context.`;
-
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+Write 4-5 sentences covering: what this opportunity is, key eligibility concern, deadline urgency, and one specific action to take today. Professional Indian CA tone.`}]})
     });
     const data=await res.json();
     const text=data.content?.map(c=>c.text||'').join('')||'Could not generate summary.';
-    if(el) el.innerHTML=text.replace(/\n/g,'<br>');
+    if(el)el.innerHTML=text.replace(/\n/g,'<br>');
   }catch(e){
-    if(el) el.textContent='Summary not available. Check your internet connection.';
+    if(el)el.textContent='Summary unavailable. Check your internet connection.';
   }
 }
 
 // ── PDF EXPORT ───────────────────────────────────────────
 async function exportPDF(id){
-  const t=tenders.find(x=>x.id===id); if(!t)return;
+  const t=tenders.find(x=>x.id===id);if(!t)return;
   notify('Generating PDF...');
   try{
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    const pw=210, margin=18, cw=pw-margin*2;
-    let y=margin;
+    const pw=210,margin=18,cw=pw-margin*2;
 
-    // Header bar
+    // Header
     doc.setFillColor(27,75,130);
-    doc.rect(0,0,210,28,'F');
+    doc.rect(0,0,210,30,'F');
     doc.setTextColor(255,255,255);
-    doc.setFontSize(16);
+    doc.setFontSize(18);
     doc.setFont('helvetica','bold');
-    doc.text('CA Tender Tracker',margin,12);
+    doc.text('CA Tender Tracker',margin,13);
     doc.setFontSize(9);
     doc.setFont('helvetica','normal');
-    doc.text('Tender Document Summary Report',margin,19);
-    doc.text('Generated: '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),pw-margin,19,{align:'right'});
-    y=38;
+    doc.text('Tender Summary Report',margin,20);
+    doc.text('Generated: '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'}),pw-margin,20,{align:'right'});
+    doc.text(currentProfile?.firm_name||'CA Firm',pw-margin,26,{align:'right'});
 
-    // Status badge
+    let y=40;
+
+    // Deadline status badge
     const d=daysLeft(t.end_date);
-    const statusColor=t.filed?[107,114,128]:d<=7?[185,28,28]:d<=14?[180,83,9]:[45,122,79];
-    const statusText=t.filed?'FILED':d<=0?'OVERDUE':d<=7?'URGENT — '+d+' DAYS LEFT':d<=14?'DUE IN '+d+' DAYS':'OPEN — '+d+' DAYS LEFT';
-    doc.setFillColor(...statusColor);
+    const [r,g,b]=t.filed?[107,114,128]:d<=7?[185,28,28]:d<=14?[180,83,9]:[45,122,79];
+    const statusText=t.filed?'FILED':d<=0?'OVERDUE':d<=7?'URGENT — '+d+' DAYS LEFT':d<=14?'DUE SOON — '+d+' DAYS LEFT':'OPEN — '+d+' DAYS LEFT';
+    doc.setFillColor(r,g,b);
     doc.roundedRect(margin,y,cw,10,2,2,'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(9);
@@ -1002,127 +987,132 @@ async function exportPDF(id){
 
     // Title
     doc.setTextColor(26,24,20);
-    doc.setFontSize(13);
+    doc.setFontSize(14);
     doc.setFont('helvetica','bold');
     const titleLines=doc.splitTextToSize(t.title,cw);
     doc.text(titleLines,margin,y);
-    y+=titleLines.length*7+4;
+    y+=titleLines.length*7+6;
 
-    // Details grid
-    const fields=[
-      ['Organisation',t.org],['Type',t.type],['State',t.state||'—'],
-      ['Value / Fee',t.value||'—'],['Source / Portal',t.source||'—'],
-      ['Reference No.',t.ref||'—'],['Start Date',fmtDate(t.start_date)],
-      ['Deadline',fmtDate(t.end_date)],['Match Score',t.score?(t.score+'%'):'—'],
-    ];
-    doc.setFontSize(9);
-    const colW=cw/2-3;
-    fields.forEach((f,i)=>{
-      const col=i%2, row=Math.floor(i/2);
-      const fx=margin+(col*(colW+6)), fy=y+(row*10);
-      if(i===0){
-        doc.setFillColor(240,237,230);
-        doc.rect(margin,y-1,cw,fields.length%2===0?(Math.ceil(fields.length/2)*10+2):((Math.ceil(fields.length/2))*10+2),'' );
-      }
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(107,100,89);
-      doc.text(f[0]+':',fx,fy+5);
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(26,24,20);
-      doc.text(String(f[1]||'—'),fx+38,fy+5);
+    // Details table using autoTable
+    doc.autoTable({
+      startY:y,
+      margin:{left:margin,right:margin},
+      head:[['Field','Details']],
+      body:[
+        ['Organisation',t.org||'—'],
+        ['Audit Type',t.type||'—'],
+        ['State / Region',t.state||'—'],
+        ['Value / Fee',t.value||'—'],
+        ['Source / Portal',t.source||'—'],
+        ['Reference No.',t.ref||'—'],
+        ['Start Date',fmtDate(t.start_date)],
+        ['Deadline',fmtDate(t.end_date)+' ('+d+' days left)'],
+        ['Match Score',t.score?(t.score+'%'):'—'],
+        ['Status',t.filed?'Filed / Applied':'Open'],
+      ],
+      styles:{fontSize:10,cellPadding:4},
+      headStyles:{fillColor:[27,75,130],textColor:255,fontStyle:'bold',fontSize:10},
+      alternateRowStyles:{fillColor:[247,245,240]},
+      columnStyles:{0:{fontStyle:'bold',textColor:[107,100,89],cellWidth:50}},
     });
-    y+=Math.ceil(fields.length/2)*10+8;
+
+    y=doc.lastAutoTable.finalY+10;
 
     // Notes
     if(t.notes){
       doc.setFillColor(247,245,240);
-      doc.setDrawColor(226,221,213);
-      doc.roundedRect(margin,y,cw,6,'','');
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(9);
-      doc.setTextColor(107,100,89);
-      doc.text('Notes / Eligibility',margin+2,y+4);
-      y+=8;
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(26,24,20);
-      doc.setFontSize(9);
-      const noteLines=doc.splitTextToSize(t.notes,cw);
-      doc.text(noteLines,margin,y);
-      y+=noteLines.length*5+6;
-    }
-
-    // Checklist
-    const cl=getChecklist(t);
-    if(cl.length){
-      const prog=checklistProgress(t);
-      doc.setFillColor(27,75,130);
-      doc.rect(margin,y,cw,8,'F');
-      doc.setTextColor(255,255,255);
+      doc.roundedRect(margin,y,cw,6,2,2,'F');
       doc.setFont('helvetica','bold');
       doc.setFontSize(10);
-      doc.text('Document Checklist',margin+3,y+5.5);
-      doc.text(prog.done+'/'+prog.total+' Ready  ('+prog.pct+'%)',pw-margin-2,y+5.5,{align:'right'});
-      y+=12;
-
-      cl.forEach((c,i)=>{
-        if(y>270){doc.addPage();y=margin;}
-        const bg=i%2===0?[255,255,255]:[247,245,240];
-        doc.setFillColor(...bg);
-        doc.rect(margin,y-1,cw,8,'F');
-        // Checkbox
-        doc.setDrawColor(180,175,165);
-        doc.rect(margin+2,y+1,5,5);
-        if(c.done){
-          doc.setDrawColor(45,122,79);
-          doc.setLineWidth(0.8);
-          doc.line(margin+3,y+3.5,margin+4.5,y+5);
-          doc.line(margin+4.5,y+5,margin+7,y+2.5);
-          doc.setLineWidth(0.2);
-          doc.setDrawColor(180,175,165);
-        }
-        doc.setFont('helvetica',c.done?'normal':'normal');
-        doc.setTextColor(c.done?107:26,c.done?100:24,c.done?89:20);
-        doc.setFontSize(9);
-        const docText=doc.splitTextToSize(c.text,cw-14);
-        doc.text(docText,margin+10,y+4.5);
-        if(c.done){
-          doc.setDrawColor(107,100,89);
-          doc.setLineWidth(0.3);
-          doc.line(margin+10,y+3.5,margin+10+doc.getTextWidth(docText[0]),y+3.5);
-          doc.setLineWidth(0.2);
-        }
-        y+=docText.length>1?docText.length*5+3:8;
-      });
-      y+=4;
+      doc.setTextColor(107,100,89);
+      doc.text('Notes & Eligibility',margin+3,y+4.5);
+      y+=10;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(10);
+      doc.setTextColor(26,24,20);
+      const noteLines=doc.splitTextToSize(t.notes,cw);
+      doc.text(noteLines,margin,y);
+      y+=noteLines.length*5.5+8;
     }
 
+    // Action checklist
+    doc.setFillColor(27,75,130);
+    doc.rect(margin,y,cw,8,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.text('Standard Documents Required',margin+3,y+5.5);
+    y+=12;
+
+    const stdDocs=[
+      'ICAI Firm Registration Certificate',
+      'PAN Card of Firm',
+      'GST Registration Certificate',
+      'Partnership Deed / LLP Agreement',
+      'C&AG Empanelment Certificate (if required)',
+      'RBI Unique Code Number / UCN (for bank audits)',
+      'Last 3 Years Balance Sheet & Audit Reports',
+      'ICAI Concurrent Audit Certificate (for bank concurrent audits)',
+      'Digital Signature Certificate (DSC)',
+      'Covering Letter on Firm Letterhead',
+      'List of Partners with qualifications',
+      'Declaration of No Conflict of Interest',
+    ];
+
+    stdDocs.forEach((doc_item,i)=>{
+      if(y>270){doc.addPage();y=margin;}
+      doc.setFillColor(i%2===0?255:247,i%2===0?255:245,i%2===0?255:240);
+      doc.rect(margin,y-1,cw,7,'F');
+      doc.setDrawColor(226,221,213);
+      doc.rect(margin+2,y+1,4,4);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.setTextColor(26,24,20);
+      doc.text(doc_item,margin+9,y+4.5);
+      y+=7;
+    });
+
     // Footer
-    if(y<250){
+    const pageCount=doc.internal.getNumberOfPages();
+    for(let i=1;i<=pageCount;i++){
+      doc.setPage(i);
       doc.setFillColor(240,237,230);
-      doc.rect(0,282,210,15,'F');
+      doc.rect(0,285,210,12,'F');
       doc.setTextColor(107,100,89);
       doc.setFontSize(8);
       doc.setFont('helvetica','normal');
-      doc.text('CA Tender Tracker  |  Confidential  |  '+currentProfile?.firm_name||'',margin,289);
-      doc.text('Page 1',pw-margin,289,{align:'right'});
+      doc.text('CA Tender Tracker  |  Confidential  |  '+(currentProfile?.firm_name||'CA Firm'),margin,291);
+      doc.text('Page '+i+' of '+pageCount,pw-margin,291,{align:'right'});
     }
 
-    doc.save('Tender_'+t.title.substring(0,30).replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
-    notify('PDF downloaded!');
+    const fname='Tender_'+t.title.substring(0,25).replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
+    doc.save(fname);
+    notify('PDF downloaded: '+fname);
   }catch(e){
-    notify('PDF error: '+e.message);
     console.error(e);
+    notify('PDF error: '+e.message);
   }
 }
 
 function notify(msg){
   const el=document.getElementById('notif');
-  el.textContent=msg; el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2800);
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
-init();
+
+// ── START ─────────────────────────────────────────────────
+(async function(){
+  showLoading(true);
+  try{
+    sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){currentUser=session.user;await loadProfile();showApp();}
+    else showAuth();
+  }catch(e){showAuth();}
+  showLoading(false);
+})();
 </script>
 </body>
 </html>
